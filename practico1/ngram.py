@@ -1,6 +1,6 @@
 # https://docs.python.org/3/library/collections.html
 from collections import defaultdict
-from math import log
+from math import log2
 
 
 class NGram(object):
@@ -14,11 +14,16 @@ class NGram(object):
         self.n = n
         self.counts = counts = defaultdict(int)
 
+
         for sent in sents:
-            for i in range(len(sent) - n + 1):
-                ngram = tuple(sent[i: i + n])
+            s = sent + ['</s>']            
+            for i in range(n-1):
+                s = ['<s>'] + s
+            for i in range(len(s) - n + 1):
+                ngram = tuple(s[i: i + n])
                 counts[ngram] += 1
                 counts[ngram[:-1]] += 1
+
 
     def prob(self, token, prev_tokens=None):
         n = self.n
@@ -28,14 +33,16 @@ class NGram(object):
 
         tokens = prev_tokens + [token]
         return float(self.counts[tuple(tokens)]) / self.counts[tuple(prev_tokens)]
+
  
     def count(self, tokens):
         """Count for an n-gram or (n-1)-gram.
  
         tokens -- the n-gram or (n-1)-gram tuple.
         """
-        
-        return self.counts[(tokens)]
+        print (str(self.counts))
+
+        return self.counts[tokens]
 
  
     def cond_prob(self, token, prev_tokens=None):
@@ -50,30 +57,27 @@ class NGram(object):
         assert len(prev_tokens) == n - 1
 
         tokens = prev_tokens + [token]
-
-        count_token = float(self.counts[tuple(tokens)])
-        
-        if len(prev_tokens) > 0:
-            c = 0
-
-        while len(prev_tokens):
-            c += float(self.counts[tuple(prev_tokens)])
-            prev_tokens = prev_tokens[0:(len(prev_tokens)-1)]
-
-        return count_token/c
-                    
- 
+        if self.counts[tuple(tokens[:-1])] == 0:
+            return float(self.counts[tuple(tokens)]) / float('inf')
+        return float(self.counts[tuple(tokens)]) / float(self.counts[tuple(tokens[:-1])])
+  
     def sent_prob(self, sent):
         """Probability of a sentence. Warning: subject to underflow problems.
  
         sent -- the sentence as a list of tokens.
         """
         c = 1
+        sent = sent + ['</s>']
+        s = sent
 
-        for i in range(len(sent)-1):
-            c *= float(self.counts[tuple(sent)]) / self.counts[tuple(sent[0:len(sent)-1])]
-            sent = sen[0:len(sent)-1]
+        for x in range(self.n-1):
+            s = ['<s>'] + s
 
+        for i in range(len(sent)):
+            if self.n == 1:
+                c *= float(self.cond_prob(sent[i]))
+            else:
+                c *= float(self.cond_prob(sent[i], s[i:self.n+i-1]))
         return c
 
  
@@ -82,11 +86,25 @@ class NGram(object):
  
         sent -- the sentence as a list of tokens.
         """
+        x = self.sent_prob(sent)
+        if x == 0.0:
+            return float('-inf')
+        return log2(x)
 
-        c = 1
 
-        for i in range(len(sent)-1):
-            c *= log(float(self.counts[tuple(sent)]) / self.counts[tuple(sent[0:len(sent)-1])], 2)
-            sent = sen[0:len(sent)-1]
 
-        return c
+class NGramGenerator:
+ 
+    def __init__(self, model):
+        """
+        model -- n-gram model.
+        """
+ 
+    def generate_sent(self):
+        """Randomly generate a sentence."""
+ 
+    def generate_token(self, prev_tokens=None):
+        """Randomly generate a token, given prev_tokens.
+ 
+        prev_tokens -- the previous n-1 tokens (optional only if n = 1).
+        """
