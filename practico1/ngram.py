@@ -40,7 +40,6 @@ class NGram(object):
  
         tokens -- the n-gram or (n-1)-gram tuple.
         """
-        print (str(self.counts))
 
         return self.counts[tokens]
 
@@ -59,7 +58,7 @@ class NGram(object):
         tokens = prev_tokens + [token]
         if self.counts[tuple(tokens[:-1])] == 0:
             return float(self.counts[tuple(tokens)]) / float('inf')
-        return float(self.counts[tuple(tokens)]) / float(self.counts[tuple(tokens[:-1])])
+        return float(self.counts[tuple(tokens)]) / float(self.counts[tuple(prev_tokens)])
   
     def sent_prob(self, sent):
         """Probability of a sentence. Warning: subject to underflow problems.
@@ -99,7 +98,20 @@ class NGramGenerator:
         """
         model -- n-gram model.
         """
- 
+
+        assert model.n > 0
+        self.n = model.n
+        self.probs = probs = defaultdict(dict)
+        self.sorted_probs = sorted_probs = defaultdict(list)
+
+        for token in model.counts:
+            if len(token) == self.n:
+                name = token[:-1]
+                dic = token[-1:]
+                probs[name][dic[0]] = model.cond_prob(dic[0],list(name))
+                sorted_probs[name].append(tuple((dic[0], model.cond_prob(dic[0],list(name)))))
+                sorted_probs[name].sort()
+
     def generate_sent(self):
         """Randomly generate a sentence."""
  
