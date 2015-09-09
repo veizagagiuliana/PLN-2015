@@ -150,10 +150,145 @@ class NGramGenerator:
         k = 0
 
         for i in range(large):
-            # print(words[i][0])
             if (k < r) and (r <= k + words[i][1]):
                 return words[i][0]
             else:
                 k += words[i][1]
 
         return
+
+class AddOneNGram:
+ 
+    def __init__(self, n, sents):
+        """
+        n -- order of the model.
+        sents -- list of sentences, each one being a list of tokens.
+        """
+
+        assert n > 0
+        self.n = n
+        self.counts = counts = defaultdict(int)
+
+        for sent in sents:
+            s = sent + ['</s>']            
+            for i in range(n-1):
+                s = ['<s>'] + s
+            for i in range(len(s) - n + 1):
+                ngram = tuple(s[i: i + n])
+                counts[ngram] += 1
+                counts[ngram[:-1]] += 1
+ 
+    def count(self, tokens):
+        """Count for an n-gram or (n-1)-gram.
+ 
+        tokens -- the n-gram or (n-1)-gram tuple.
+        """
+        return self.counts[tokens]
+ 
+    def cond_prob(self, token, prev_tokens=None):
+        """Conditional probability of a token.
+ 
+        token -- the token.
+        prev_tokens -- the previous n-1 tokens (optional only if n = 1).
+        """
+        n = self.n
+        if not prev_tokens:
+            prev_tokens = []
+        assert len(prev_tokens) == n - 1
+
+        v = self.V()
+
+        tokens = prev_tokens + [token]
+        if self.count(tuple(tokens[:-1])) == 0:
+            return (float(self.count(tuple(tokens))) + 1.0) \
+                            / (float('inf') + v)
+
+        result = (float(self.count(tuple(tokens))) + 1.0) \
+                        / (float(self.count(tuple(prev_tokens))) + v)
+
+        if self.counts[tuple(tokens)] == 0:
+            del self.counts[tuple(tokens)]
+
+        return float(result)
+
+
+    def V(self):
+        """Size of the vocabulary.
+        """
+        v = []
+        for w, c in self.counts.items():
+            if len(w) == self.n:
+                for i in w:
+                    v += [i]
+        v = list(set(v))
+        if '<s>' in v:
+            v.remove('<s>')
+        return len(v)
+
+class InterpolatedNGram:
+ 
+    def __init__(self, n, sents, gamma=None, addone=True):
+        """
+        n -- order of the model.
+        sents -- list of sentences, each one being a list of tokens.
+        gamma -- interpolation hyper-parameter (if not given, estimate using
+            held-out data).
+        addone -- whether to use addone smoothing (default: True).
+        """
+ 
+    def count(self, tokens):
+        """Count for an k-gram for k <= n.
+ 
+        tokens -- the k-gram tuple.
+        """
+ 
+    def cond_prob(self, token, prev_tokens=None):
+        """Conditional probability of a token.
+ 
+        token -- the token.
+        prev_tokens -- the previous n-1 tokens (optional only if n = 1).
+        """
+
+class BackOffNGram:
+ 
+    def __init__(self, n, sents, beta=None, addone=True):
+        """
+        Back-off NGram model with discounting as described by Michael Collins.
+ 
+        n -- order of the model.
+        sents -- list of sentences, each one being a list of tokens.
+        beta -- discounting hyper-parameter (if not given, estimate using
+            held-out data).
+        addone -- whether to use addone smoothing (default: True).
+        """
+ 
+    def count(self, tokens):
+        """Count for an k-gram for k <= n.
+ 
+        tokens -- the k-gram tuple.
+        """
+ 
+    def cond_prob(self, token, prev_tokens=None):
+        """Conditional probability of a token.
+ 
+        token -- the token.
+        prev_tokens -- the previous n-1 tokens (optional only if n = 1).
+        """
+ 
+    def A(self, tokens):
+        """Set of words with counts > 0 for a k-gram with 0 < k < n.
+ 
+        tokens -- the k-gram tuple.
+        """
+ 
+    def alpha(self, tokens):
+        """Missing probability mass for a k-gram with 0 < k < n.
+ 
+        tokens -- the k-gram tuple.
+        """
+ 
+    def denom(self, tokens):
+        """Normalization factor for a k-gram with 0 < k < n.
+ 
+        tokens -- the k-gram tuple.
+        """
