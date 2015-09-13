@@ -169,13 +169,7 @@ class AddOneNGram(NGram):
         """
         NGram.__init__(self, n, sents)
         self.v = self.V()
-
-    # def count(self, tokens):
-    #     """Count for an n-gram or (n-1)-gram.
- 
-    #     tokens -- the n-gram or (n-1)-gram tuple.
-    #     """
-    #     return self.counts[tokens]
+        
  
     def cond_prob(self, token, prev_tokens=None):
         """Conditional probability of a token.
