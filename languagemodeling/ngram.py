@@ -1,7 +1,8 @@
 # https://docs.python.org/3/library/collections.html
 from collections import defaultdict
 import random
-from math import log2
+import pdb
+from math import log2, sqrt, log
 
 
 class NGram(object):
@@ -14,7 +15,6 @@ class NGram(object):
         assert n > 0
         self.n = n
         self.counts = counts = defaultdict(int)
-
 
         for sent in sents:
             s = sent + ['</s>']            
@@ -41,7 +41,6 @@ class NGram(object):
  
         tokens -- the n-gram or (n-1)-gram tuple.
         """
-
         return self.counts[tokens]
 
  
@@ -60,38 +59,38 @@ class NGram(object):
         if self.counts[tuple(tokens[:-1])] == 0:
             return float(self.counts[tuple(tokens)]) / float('inf')
         return float(self.counts[tuple(tokens)]) / float(self.counts[tuple(prev_tokens)])
+
   
     def sent_prob(self, sent):
         """Probability of a sentence. Warning: subject to underflow problems.
  
         sent -- the sentence as a list of tokens.
         """
-        c = 1
+        sent_prob = 1
         sent = sent + ['</s>']
-        s = sent
-
-        for x in range(self.n-1):
-            s = ['<s>'] + s
+        prev_tokens = ['<s>']*(self.n-1)
 
         for i in range(len(sent)):
-            if self.n == 1:
-                c *= float(self.cond_prob(sent[i]))
-            else:
-                c *= float(self.cond_prob(sent[i], s[i:self.n+i-1]))
-        return c
+            sent_prob *= float(self.cond_prob(sent[i], prev_tokens))
+            prev_tokens.append(sent[i])
+            prev_tokens = prev_tokens[1:]
+        return sent_prob
 
- 
+
     def sent_log_prob(self, sent):
-        """Log-probability of a sentence.
- 
-        sent -- the sentence as a list of tokens.
-        """
-        x = self.sent_prob(sent)
-        if x == 0.0:
-            return float('-inf')
-        return log2(x)
+        sent_prob = 0
+        sent = sent + ['</s>']
+        prev_tokens = ['<s>']*(self.n-1)
 
-
+        for i in range(len(sent)):
+            token_prob = float(self.cond_prob(sent[i], prev_tokens))
+            if token_prob == 0.0:
+                return float('-inf')
+            sent_prob += log2(token_prob)
+            prev_tokens.append(sent[i])
+            prev_tokens = prev_tokens[1:]
+        return sent_prob
+        
 
 class NGramGenerator:
  
@@ -107,13 +106,16 @@ class NGramGenerator:
 
         for token in model.counts:
             if len(token) == self.n:
+                # pdb.set_trace()
                 name = token[:-1]
-                dic = token[-1:]
-                probs[name][dic[0]] = model.cond_prob(dic[0],list(name))
-                sorted_probs[name].append(tuple((dic[0], model.cond_prob(dic[0],
-                                                 list(name)))))
+                dic = token[-1]
+                probs[name][dic] = model.cond_prob(dic,list(name))
+                sorted_probs[name].append((dic, model.cond_prob(dic,
+                                                 list(name))))
                 sorted_probs[name].sort()
 
+        for prev, l in sorted_probs.items():
+            assert abs(sum(x[1] for x in l) - 1.0) < 1e-10, (prev, sum(x[1] for x in l))
 
     def generate_sent(self):
         """Randomly generate a sentence."""
@@ -125,13 +127,12 @@ class NGramGenerator:
             s += ['<s>']
         while True:
             wn = self.generate_token(tuple(s))
-            if wn != '</s>':
-                sent += [wn]
-                if tuple(sent)[-1:][0] is '.':
-                    break
-                if n!=1:
-                    s = s[1:]
-                    s += [wn]
+            if wn == '</s>':
+                break
+            sent += [wn]
+            if n!=1:
+                s = s[1:]
+                s += [wn]
         return sent
 
  
@@ -147,7 +148,7 @@ class NGramGenerator:
         words = self.sorted_probs[tuple(prev_tokens)]
         large = len(words)
         r = random.random()
-        k = 0
+        k = 0.0
 
         for i in range(large):
             if (k < r) and (r <= k + words[i][1]):
@@ -155,35 +156,26 @@ class NGramGenerator:
             else:
                 k += words[i][1]
 
-        return
+        assert abs(k - 1.0) < 1e-10
+        assert abs(r - 1.0) < 1e-10
+        return words[i][0]
 
-class AddOneNGram:
+class AddOneNGram(NGram):
  
     def __init__(self, n, sents):
         """
         n -- order of the model.
         sents -- list of sentences, each one being a list of tokens.
         """
+        NGram.__init__(self, n, sents)
+        self.v = self.V()
 
-        assert n > 0
-        self.n = n
-        self.counts = counts = defaultdict(int)
-
-        for sent in sents:
-            s = sent + ['</s>']            
-            for i in range(n-1):
-                s = ['<s>'] + s
-            for i in range(len(s) - n + 1):
-                ngram = tuple(s[i: i + n])
-                counts[ngram] += 1
-                counts[ngram[:-1]] += 1
+    # def count(self, tokens):
+    #     """Count for an n-gram or (n-1)-gram.
  
-    def count(self, tokens):
-        """Count for an n-gram or (n-1)-gram.
- 
-        tokens -- the n-gram or (n-1)-gram tuple.
-        """
-        return self.counts[tokens]
+    #     tokens -- the n-gram or (n-1)-gram tuple.
+    #     """
+    #     return self.counts[tokens]
  
     def cond_prob(self, token, prev_tokens=None):
         """Conditional probability of a token.
@@ -196,15 +188,13 @@ class AddOneNGram:
             prev_tokens = []
         assert len(prev_tokens) == n - 1
 
-        v = self.V()
-
         tokens = prev_tokens + [token]
         if self.count(tuple(tokens[:-1])) == 0:
             return (float(self.count(tuple(tokens))) + 1.0) \
-                            / (float('inf') + v)
+                            / (float('inf') + self.v)
 
         result = (float(self.count(tuple(tokens))) + 1.0) \
-                        / (float(self.count(tuple(prev_tokens))) + v)
+                        / (float(self.count(tuple(prev_tokens))) + self.v)
 
         if self.counts[tuple(tokens)] == 0:
             del self.counts[tuple(tokens)]
