@@ -90,7 +90,20 @@ class NGram(object):
             prev_tokens.append(sent[i])
             prev_tokens = prev_tokens[1:]
         return sent_prob
+
+
+    def cross_entropy(self, sent, M):
         
+        sum_log = 0
+        for i in len(sent):
+            sum_log += self.sent_log_prob(sent[:i])
+        return (-sum_log/M)
+
+
+    def perplexity(self, sent, M):
+
+        ce = self.cross_entropy(sent, M)
+        return (2**ce)
 
 class NGramGenerator:
  
