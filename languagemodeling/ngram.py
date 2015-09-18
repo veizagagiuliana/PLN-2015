@@ -2,7 +2,7 @@
 from collections import defaultdict
 import random
 import pdb
-from math import log2, sqrt, log
+from math import log2, log
 
 
 class NGram(object):
@@ -56,7 +56,7 @@ class NGram(object):
         assert len(prev_tokens) == n - 1
 
         tokens = prev_tokens + [token]
-        if self.counts[tuple(tokens[:-1])] == 0:
+        if self.counts[tuple(prev_tokens)] == 0:
             return float(self.counts[tuple(tokens)]) / float('inf')
         return float(self.counts[tuple(tokens)]) / float(self.counts[tuple(prev_tokens)])
 
@@ -66,7 +66,7 @@ class NGram(object):
  
         sent -- the sentence as a list of tokens.
         """
-        sent_prob = 1
+        sent_prob = 1.0
         sent = sent + ['</s>']
         prev_tokens = ['<s>']*(self.n-1)
 
@@ -119,14 +119,13 @@ class NGramGenerator:
 
         for token in model.counts:
             if len(token) == self.n:
-                # pdb.set_trace()
                 name = token[:-1]
                 dic = token[-1]
                 probs[name][dic] = model.cond_prob(dic,list(name))
                 sorted_probs[name].append((dic, model.cond_prob(dic,
                                                  list(name))))
                 sorted_probs[name].sort()
-
+                sorted_probs[name].sort(key=lambda tup: tup[1], reverse=True)
         for prev, l in sorted_probs.items():
             assert abs(sum(x[1] for x in l) - 1.0) < 1e-10, (prev, sum(x[1] for x in l))
 
