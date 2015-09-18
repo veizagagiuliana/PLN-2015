@@ -78,32 +78,44 @@ class NGram(object):
 
 
     def sent_log_prob(self, sent):
-        sent_prob = 0
+        """Log-probability of a sentence.
+ 
+        sent -- the sentence as a list of tokens.
+        """
+        n = self.n
+        sent_prob = 0.0
         sent = sent + ['</s>']
-        prev_tokens = ['<s>']*(self.n-1)
+        prev_tokens = ['<s>']*(n-1)
 
-        for i in range(len(sent)):
-            token_prob = float(self.cond_prob(sent[i], prev_tokens))
+        for token in sent:
+            token_prob = float(self.cond_prob(token, prev_tokens))
             if token_prob == 0.0:
                 return float('-inf')
-            sent_prob += log2(token_prob)
-            prev_tokens.append(sent[i])
+            sent_prob += log(token_prob, 2)
+            prev_tokens.append(token)
             prev_tokens = prev_tokens[1:]
         return sent_prob
 
 
-    def cross_entropy(self, sent, M):
-        
-        sum_log = 0
-        for i in len(sent):
-            sum_log += self.sent_log_prob(sent[:i])
+    def log_probability(self, sents):
+        sum_log = 0.0
+        for sent in sents:
+            sum_log += self.sent_log_prob(sent)
+        return sum_log
+
+
+    def cross_entropy(self, sents):
+        M = 0
+        for sent in sents:
+            M += len(sent) + 1
+        sum_log = self.log_probability(sents)
         return (-sum_log/M)
 
 
-    def perplexity(self, sent, M):
-
-        ce = self.cross_entropy(sent, M)
+    def perplexity(self, sents):
+        ce = self.cross_entropy(sents)
         return (2**ce)
+
 
 class NGramGenerator:
  
