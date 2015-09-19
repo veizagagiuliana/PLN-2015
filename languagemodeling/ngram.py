@@ -56,8 +56,8 @@ class NGram(object):
         assert len(prev_tokens) == n - 1
 
         tokens = prev_tokens + [token]
-        if self.counts[tuple(prev_tokens)] == 0:
-            return float(self.counts[tuple(tokens)]) / float('inf')
+        # if self.counts[tuple(prev_tokens)] == 0:
+        #     return float(self.counts[tuple(tokens)]) / float('inf')
         return float(self.counts[tuple(tokens)]) / float(self.counts[tuple(prev_tokens)])
 
   
@@ -72,6 +72,8 @@ class NGram(object):
 
         for i in range(len(sent)):
             sent_prob *= float(self.cond_prob(sent[i], prev_tokens))
+            if sent_prob == 0.0:
+                return sent_prob
             prev_tokens.append(sent[i])
             prev_tokens = prev_tokens[1:]
         return sent_prob
@@ -184,6 +186,7 @@ class NGramGenerator:
         assert abs(r - 1.0) < 1e-10
         return words[i][0]
 
+
 class AddOneNGram(NGram):
  
     def __init__(self, n, sents):
@@ -233,7 +236,8 @@ class AddOneNGram(NGram):
             v.remove('<s>')
         return len(v)
 
-class InterpolatedNGram:
+
+class InterpolatedNGram(NGram):
  
     def __init__(self, n, sents, gamma=None, addone=True):
         """
@@ -243,8 +247,28 @@ class InterpolatedNGram:
             held-out data).
         addone -- whether to use addone smoothing (default: True).
         """
- 
-    def count(self, tokens):
+        NGram(self, n, sents)
+        len_sent = len(sent)
+        train = sents[:int(0,9 * len_sent)]
+        held_out = sents[int(0,9 * len_sent):]
+
+        if gamma:
+            self.gamma = gamma
+        else:
+            self.gamma = self.build_gamma(held_out)
+
+
+        self.addone = addone
+    
+    def build_gamma(self, held_out):
+        gamma = [1, 100, 500, 1000, 1500, 2000]
+        search_gamma = []
+        for i in len[gamma]:
+            search_gamma.append(self.perplexity(held_out, gamma[i]))
+        """buscar el mejor gamma"""
+        return
+
+    # def count(self, tokens):
         """Count for an k-gram for k <= n.
  
         tokens -- the k-gram tuple.
@@ -256,6 +280,7 @@ class InterpolatedNGram:
         token -- the token.
         prev_tokens -- the previous n-1 tokens (optional only if n = 1).
         """
+
 
 class BackOffNGram:
  
