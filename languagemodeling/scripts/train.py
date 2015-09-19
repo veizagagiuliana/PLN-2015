@@ -35,7 +35,9 @@ if __name__ == '__main__':
     else:
       m = NGram
     sents = corpus.sents('En_busca_del_tiempo_perdido.txt')
-    model = m(n, sents)
+    len_sents = len(sents)
+    train_sents = sents[:int(0.9 * len_sents)]
+    model = m(n, train_sents)
     filename = opts['-o']
     f = open(filename, 'wb')
     pickle.dump(model, f)

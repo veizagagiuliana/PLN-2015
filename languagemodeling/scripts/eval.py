@@ -29,6 +29,5 @@ if __name__ == '__main__':
     openfile = open(filename, 'rb')
     model = pickle.load(openfile)
     openfile.close()
-    print(model.log_probability(eval_sents))
-    print(model.cross_entropy(eval_sents))
+
     print(model.perplexity(eval_sents))
