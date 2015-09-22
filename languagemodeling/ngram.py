@@ -249,7 +249,7 @@ class InterpolatedNGram(NGram):
         NGram.__init__(self, n, sents)
         len_sents = len(sents)
 
-        if gamma:
+        if gamma != None:
             self.gamma = gamma
         else:
             train = sents[:int(0.9 * len_sents)]
@@ -259,7 +259,6 @@ class InterpolatedNGram(NGram):
         self.addone = addone
         self.counts = self.build_count(sents)
         self.v = self.V()
-        self.sum_lamda = 0.0
 
     
     def build_gamma(self, held_out):
@@ -293,28 +292,26 @@ class InterpolatedNGram(NGram):
     def cond_prob_ML(self, token, prev_tokens=None):
         n = self.n
         counts = self.counts
+        addone = self.addone
         if not prev_tokens:
             prev_tokens = []
 
         tokens = prev_tokens + [token]
-        if self.addone and not len(prev_tokens):
-            return float(self.counts(tuple(tokens))) / float(self.V)
-        print(tokens)
+        if addone and not len(prev_tokens):
+            return float(self.count(tuple(tokens))) / float(self.v)
         return float(self.count(tuple(tokens))) / float(self.count(tuple(prev_tokens)))
 
 
-    def lamdas(self, sent):
+    def lamdas(self, tokens):
         counts = self.counts
         n = self.n
-        sum_lamda = 0.0
         lamdas = []
 
         for i in range(n - 1):
-            lamda = (1 - sum_lamda) * (self.count(tuple(sent[i:])) 
-                                       / (self.count(tuple(sent[i:])) + self.gamma))
-            sum_lamda += lamda
+            lamda = float((1 - sum(lamdas)) * (self.count(tuple(tokens[i:])) 
+                                       / (self.count(tuple(tokens[i:])) + self.gamma)))
             lamdas.append(lamda)
-        lamda = 1 - sum_lamda
+        lamda = float(1 - sum(lamdas))
         lamdas.append(lamda)
         return lamdas
 
@@ -327,11 +324,9 @@ class InterpolatedNGram(NGram):
         assert len(prev_tokens) == n - 1
 
         tokens = prev_tokens + [token]
-        lamdas = self.lamdas(tokens)
+        lamdas = self.lamdas(prev_tokens)
         prob = 0.0
         for i in range(n):
-            print(lamdas[i])
-            # print(self.cond_prob_ML(token, prev_tokens[i:]))
             prob += lamdas[i] * self.cond_prob_ML(token, prev_tokens[i:])
         return prob
 
