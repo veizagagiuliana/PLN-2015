@@ -249,23 +249,24 @@ class InterpolatedNGram(NGram):
         NGram.__init__(self, n, sents)
         len_sents = len(sents)
 
+        self.addone = addone
+        self.v = self.V()
+
         if gamma != None:
             self.gamma = gamma
         else:
-            train = sents[:int(0.9 * len_sents)]
             held_out = sents[int(0.9 * len_sents):]
+            sents = sents[:int(0.9 * len_sents)]
             self.gamma = self.build_gamma(held_out)
 
-        self.addone = addone
         self.counts = self.build_count(sents)
-        self.v = self.V()
 
     
     def build_gamma(self, held_out):
         aux_gamma = 1
         gamma = aux_gamma
         old_perp = self.perplexity(held_out)
-        for i in range[40]:
+        for i in range(40):
             aux_gamma += 50
             new_perp = self.perplexity(held_out)
             if new_perp < old_perp:
