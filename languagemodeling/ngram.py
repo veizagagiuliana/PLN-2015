@@ -17,11 +17,10 @@ class NGram(object):
         self.counts = counts = defaultdict(int)
 
         for sent in sents:
-            s = sent + ['</s>']            
-            for i in range(n-1):
-                s = ['<s>'] + s
-            for i in range(len(s) - n + 1):
-                ngram = tuple(s[i: i + n])
+            sent = sent + ['</s>']            
+            sent = ['<s>']*(n-1) + sent
+            for i in range(len(sent) - (n - 1)):
+                ngram = tuple(sent[i: i + n])
                 counts[ngram] += 1
                 counts[ngram[:-1]] += 1
 
@@ -247,39 +246,109 @@ class InterpolatedNGram(NGram):
             held-out data).
         addone -- whether to use addone smoothing (default: True).
         """
-        NGram(self, n, sents)
-        len_sent = len(sent)
-        train = sents[:int(0,9 * len_sent)]
-        held_out = sents[int(0,9 * len_sent):]
+        NGram.__init__(self, n, sents)
+        len_sents = len(sents)
 
         if gamma:
             self.gamma = gamma
         else:
+            train = sents[:int(0.9 * len_sents)]
+            held_out = sents[int(0.9 * len_sents):]
             self.gamma = self.build_gamma(held_out)
 
-
         self.addone = addone
+        self.counts = self.build_count(sents)
+        self.v = self.V()
+        self.sum_lamda = 0.0
+
     
     def build_gamma(self, held_out):
-        gamma = [1, 100, 500, 1000, 1500, 2000]
-        search_gamma = []
-        for i in len[gamma]:
-            search_gamma.append(self.perplexity(held_out, gamma[i]))
-        """buscar el mejor gamma"""
-        return
+        aux_gamma = 1
+        gamma = aux_gamma
+        old_perp = self.perplexity(held_out)
+        for i in range[40]:
+            aux_gamma += 50
+            new_perp = self.perplexity(held_out)
+            if new_perp < old_perp:
+                old_perp = new_perp
+                gamma = aux_gamma
+        return gamma
 
-    # def count(self, tokens):
-        """Count for an k-gram for k <= n.
+
+    def build_count(self, sents):
+        n = self.n
+        counts = defaultdict(int)
+        for sent in sents:
+            sent = ['<s>']*(n-1) + sent + ['</s>']
+            for i in range(1, n+1):
+                for j in range(len(sent) - (i - 1)):
+                    ngram = tuple(sent[j:j+i])
+                    if ngram != ('<s>',) and ngram != ('<s>', '<s>'):
+                        counts[ngram] += 1
+                    if i == 1 and ngram != ('<s>',):
+                        counts[tuple()] += 1
+        return counts
+
  
-        tokens -- the k-gram tuple.
-        """
- 
+    def cond_prob_ML(self, token, prev_tokens=None):
+        n = self.n
+        counts = self.counts
+        if not prev_tokens:
+            prev_tokens = []
+
+        tokens = prev_tokens + [token]
+        if self.addone and not len(prev_tokens):
+            return float(self.counts(tuple(tokens))) / float(self.V)
+        print(tokens)
+        return float(self.count(tuple(tokens))) / float(self.count(tuple(prev_tokens)))
+
+
+    def lamdas(self, sent):
+        counts = self.counts
+        n = self.n
+        sum_lamda = 0.0
+        lamdas = []
+
+        for i in range(n - 1):
+            lamda = (1 - sum_lamda) * (self.count(tuple(sent[i:])) 
+                                       / (self.count(tuple(sent[i:])) + self.gamma))
+            sum_lamda += lamda
+            lamdas.append(lamda)
+        lamda = 1 - sum_lamda
+        lamdas.append(lamda)
+        return lamdas
+
+
     def cond_prob(self, token, prev_tokens=None):
-        """Conditional probability of a token.
- 
-        token -- the token.
-        prev_tokens -- the previous n-1 tokens (optional only if n = 1).
+        n = self.n
+        counts = self.counts
+        if not prev_tokens:
+            prev_tokens = []
+        assert len(prev_tokens) == n - 1
+
+        tokens = prev_tokens + [token]
+        lamdas = self.lamdas(tokens)
+        prob = 0.0
+        for i in range(n):
+            print(lamdas[i])
+            # print(self.cond_prob_ML(token, prev_tokens[i:]))
+            prob += lamdas[i] * self.cond_prob_ML(token, prev_tokens[i:])
+        return prob
+
+
+    def V(self):
+        """Size of the vocabulary.
         """
+        v = []
+        for w, c in self.counts.items():
+            if len(w) == self.n:
+                for i in w:
+                    v += [i]
+        v = list(set(v))
+        if '<s>' in v:
+            v.remove('<s>')
+        return len(v)
+
 
 
 class BackOffNGram:
