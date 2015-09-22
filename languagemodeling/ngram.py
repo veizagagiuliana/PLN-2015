@@ -55,8 +55,6 @@ class NGram(object):
         assert len(prev_tokens) == n - 1
 
         tokens = prev_tokens + [token]
-        # if self.counts[tuple(prev_tokens)] == 0:
-        #     return float(self.counts[tuple(tokens)]) / float('inf')
         return float(self.counts[tuple(tokens)]) / float(self.counts[tuple(prev_tokens)])
 
   
@@ -280,14 +278,17 @@ class InterpolatedNGram(NGram):
         counts = defaultdict(int)
         for sent in sents:
             sent = ['<s>']*(n-1) + sent + ['</s>']
+            len_sent = len(sent)
             for i in range(1, n+1):
-                for j in range(len(sent) - (i - 1)):
-                    ngram = tuple(sent[j:j+i])
-                    if ngram != ('<s>',) and ngram != ('<s>', '<s>'):
-                        counts[ngram] += 1
-                    if i == 1 and ngram != ('<s>',):
+                for j in range(len_sent - (n - 1)):
+                    ngram = tuple(sent[len_sent-i-j:len_sent-j])
+                    counts[ngram] += 1
+                    if i == 1:
                         counts[tuple()] += 1
+            for i in range(1, n):
+                counts[tuple(['<s>']*i)] += 1
         return counts
+
 
  
     def cond_prob_ML(self, token, prev_tokens=None):
@@ -299,7 +300,9 @@ class InterpolatedNGram(NGram):
 
         tokens = prev_tokens + [token]
         if addone and not len(prev_tokens):
-            return float(self.count(tuple(tokens))) / float(self.v)
+            return (float(self.count(tuple(tokens))) / 
+                   (float(self.count(tuple(prev_tokens))) + float(self.v)))
+        print(prev_tokens)
         return float(self.count(tuple(tokens))) / float(self.count(tuple(prev_tokens)))
 
 
@@ -324,6 +327,7 @@ class InterpolatedNGram(NGram):
             prev_tokens = []
         assert len(prev_tokens) == n - 1
 
+        # prev_tokens = ['<s>'] * (n-1) + prev_tokens
         tokens = prev_tokens + [token]
         lamdas = self.lamdas(prev_tokens)
         prob = 0.0
