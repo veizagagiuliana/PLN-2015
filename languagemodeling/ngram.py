@@ -295,7 +295,7 @@ class InterpolatedNGram(NGram):
 
         tokens = prev_tokens + [token]
         if addone and not len(prev_tokens):
-            return (float(self.count(tuple(tokens))) / 
+            return (float(self.count(tuple(tokens)) + 1) / 
                    (float(self.count(tuple(prev_tokens))) + float(self.v)))
         return float(self.count(tuple(tokens))) / float(self.count(tuple(prev_tokens)))
 
