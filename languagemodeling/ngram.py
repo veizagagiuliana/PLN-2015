@@ -259,19 +259,105 @@ class InterpolatedNGram(NGram):
 
         self.counts = self.build_count(sents)
 
-    
+    def build_count(self, sents):
+        n = self.n
+        counts = defaultdict(int)
+        for sent in sents:
+            sent = ['<s>']*(n-1) + sent + ['</s>']
+            len_sent = len(sent)
+            for i in range(1, n+1):
+                for j in range(len_sent - (n - 1)):
+                    ngram = tuple(sent[len_sent-i-j:len_sent-j])
+                    counts[ngram] += 1
+                    if i == 1:
+                        counts[tuple()] += 1
+            for i in range(1, n):
+                counts[tuple(['<s>']*i)] += 1
+        return counts
+
     def build_gamma(self, held_out):
-        aux_gamma = 1
-        gamma = aux_gamma
+        self.gamma = 1
+        gamma_ok = self.gamma
         old_perp = self.perplexity(held_out)
-        for i in range(40):
-            aux_gamma += 50
+        for gamma in range(100, 50000, 1000):
+            self.gamma = gamma
             new_perp = self.perplexity(held_out)
             if new_perp < old_perp:
-                old_perp = new_perp
-                gamma = aux_gamma
-        return gamma
+                gamma_ok = self.gamma
+        self.gamma = gamma_ok
+ 
+    def cond_prob_ML(self, token, prev_tokens=None):
+        n = self.n
+        counts = self.counts
+        addone = self.addone
+        if not prev_tokens:
+            prev_tokens = []
 
+        tokens = prev_tokens + [token]
+        if addone and not len(prev_tokens):
+            return (float(self.count(tuple(tokens))) / 
+                   (float(self.count(tuple(prev_tokens))) + float(self.v)))
+        return float(self.count(tuple(tokens))) / float(self.count(tuple(prev_tokens)))
+
+    def lamdas(self, tokens):
+        counts = self.counts
+        n = self.n
+        lamdas = []
+
+        for i in range(n - 1):
+            lamda = float((1 - sum(lamdas)) * (self.count(tuple(tokens[i:])) 
+                                       / (self.count(tuple(tokens[i:])) + self.gamma)))
+            lamdas.append(lamda)
+        lamda = float(1 - sum(lamdas))
+        lamdas.append(lamda)
+        return lamdas
+
+    def cond_prob(self, token, prev_tokens=None):
+        n = self.n
+        counts = self.counts
+        if not prev_tokens:
+            prev_tokens = []
+        assert len(prev_tokens) == n - 1
+
+        tokens = prev_tokens + [token]
+        lamdas = self.lamdas(prev_tokens)
+        prob = 0.0
+        for i in range(n):
+            if lamdas[i] != 0:
+                prob += lamdas[i] * self.cond_prob_ML(token, prev_tokens[i:])
+        return prob
+
+    def V(self):
+        """Size of the vocabulary.
+        """
+        v = []
+        for w, c in self.counts.items():
+            if len(w) == self.n:
+                for i in w:
+                    v += [i]
+        v = list(set(v))
+        if '<s>' in v:
+            v.remove('<s>')
+        return len(v)
+
+
+
+class BackOffNGram(NGram):
+ 
+    def __init__(self, n, sents, beta=None, addone=True):
+        """
+        Back-off NGram model with discounting as described by Michael Collins.
+ 
+        n -- order of the model.
+        sents -- list of sentences, each one being a list of tokens.
+        beta -- discounting hyper-parameter (if not given, estimate using
+            held-out data).
+        addone -- whether to use addone smoothing (default: True).
+        """
+        NGram.__init__(n, sents)
+        self.addone = addone
+        self.beta = beta
+ 
 
     def build_count(self, sents):
         n = self.n
@@ -289,81 +375,10 @@ class InterpolatedNGram(NGram):
                 counts[tuple(['<s>']*i)] += 1
         return counts
 
+    def count_prime(self, tokens):
+        return self.count(tokens) - self.beta
 
- 
-    def cond_prob_ML(self, token, prev_tokens=None):
-        n = self.n
-        counts = self.counts
-        addone = self.addone
-        if not prev_tokens:
-            prev_tokens = []
-
-        tokens = prev_tokens + [token]
-        if addone and not len(prev_tokens):
-            return (float(self.count(tuple(tokens))) / 
-                   (float(self.count(tuple(prev_tokens))) + float(self.v)))
-        return float(self.count(tuple(tokens))) / float(self.count(tuple(prev_tokens)))
-
-
-    def lamdas(self, tokens):
-        counts = self.counts
-        n = self.n
-        lamdas = []
-
-        for i in range(n - 1):
-            lamda = float((1 - sum(lamdas)) * (self.count(tuple(tokens[i:])) 
-                                       / (self.count(tuple(tokens[i:])) + self.gamma)))
-            lamdas.append(lamda)
-        lamda = float(1 - sum(lamdas))
-        lamdas.append(lamda)
-        return lamdas
-
-
-    def cond_prob(self, token, prev_tokens=None):
-        n = self.n
-        counts = self.counts
-        if not prev_tokens:
-            prev_tokens = []
-        assert len(prev_tokens) == n - 1
-
-        tokens = prev_tokens + [token]
-        lamdas = self.lamdas(prev_tokens)
-        prob = 0.0
-        for i in range(n):
-            if lamdas[i] != 0:
-                prob += lamdas[i] * self.cond_prob_ML(token, prev_tokens[i:])
-        return prob
-
-
-    def V(self):
-        """Size of the vocabulary.
-        """
-        v = []
-        for w, c in self.counts.items():
-            if len(w) == self.n:
-                for i in w:
-                    v += [i]
-        v = list(set(v))
-        if '<s>' in v:
-            v.remove('<s>')
-        return len(v)
-
-
-
-class BackOffNGram:
- 
-    def __init__(self, n, sents, beta=None, addone=True):
-        """
-        Back-off NGram model with discounting as described by Michael Collins.
- 
-        n -- order of the model.
-        sents -- list of sentences, each one being a list of tokens.
-        beta -- discounting hyper-parameter (if not given, estimate using
-            held-out data).
-        addone -- whether to use addone smoothing (default: True).
-        """
- 
-    def count(self, tokens):
+    # def count(self, tokens):
         """Count for an k-gram for k <= n.
  
         tokens -- the k-gram tuple.
@@ -375,6 +390,15 @@ class BackOffNGram:
         token -- the token.
         prev_tokens -- the previous n-1 tokens (optional only if n = 1).
         """
+        n = self.n
+        counts = self.counts
+        addone = self.addone
+        if not prev_tokens:
+            prev_tokens = []
+
+        tokens = prev_tokens + [token]
+        if self.count(tokens)>0:
+            return self.count_prime(tokens)/self.count(prev_tokens)
  
     def A(self, tokens):
         """Set of words with counts > 0 for a k-gram with 0 < k < n.
