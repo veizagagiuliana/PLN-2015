@@ -302,7 +302,6 @@ class InterpolatedNGram(NGram):
         if addone and not len(prev_tokens):
             return (float(self.count(tuple(tokens))) / 
                    (float(self.count(tuple(prev_tokens))) + float(self.v)))
-        print(prev_tokens)
         return float(self.count(tuple(tokens))) / float(self.count(tuple(prev_tokens)))
 
 
@@ -327,12 +326,12 @@ class InterpolatedNGram(NGram):
             prev_tokens = []
         assert len(prev_tokens) == n - 1
 
-        # prev_tokens = ['<s>'] * (n-1) + prev_tokens
         tokens = prev_tokens + [token]
         lamdas = self.lamdas(prev_tokens)
         prob = 0.0
         for i in range(n):
-            prob += lamdas[i] * self.cond_prob_ML(token, prev_tokens[i:])
+            if lamdas[i] != 0:
+                prob += lamdas[i] * self.cond_prob_ML(token, prev_tokens[i:])
         return prob
 
 
