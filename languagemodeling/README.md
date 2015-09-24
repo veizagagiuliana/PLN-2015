@@ -2,7 +2,9 @@ PRACTICO 1
 
 Ejercicio 3 : Generación de texto
 
-n-grama: n = 2 * Al día le llevaba catleyas . * “ Renata de que representaban los días le pedí noticias de lo encontraban en mi abuela esas seducciones que conocía sus brazos en una frase que había observado entonces deben enamorarse más esa regla de Charlus , para limpiarlo , sino que al no verla . * Y de René : Agudo y que al arrugar un sello de su camino junto al bridge . * En verdad , ha de hipo , por lo que me habían nacido Legrandin llegó también porque ese efecto , y una cola de fastidio que está todavía la Gravière : un hombre ordinario .
+n-grama:
+n = 2 
+* Al día le llevaba catleyas . * “ Renata de que representaban los días le pedí noticias de lo encontraban en mi abuela esas seducciones que conocía sus brazos en una frase que había observado entonces deben enamorarse más esa regla de Charlus , para limpiarlo , sino que al no verla . * Y de René : Agudo y que al arrugar un sello de su camino junto al bridge . * En verdad , ha de hipo , por lo que me habían nacido Legrandin llegó también porque ese efecto , y una cola de fastidio que está todavía la Gravière : un hombre ordinario .
 
 n = 3
 * No bien se dijera que podía expresar para un francés excelente .
@@ -19,12 +21,14 @@ n = 4
 
 Ejercicio 5 : Evaluación de Modelos de Lenguaje
 
-n-gram: n = 1 log_probability = -877902.1995094967 cross_entropy = 9.854436668756348 perplexity = 925.7229436494428
+n-gram: 
+n = 1 log_probability = -877902.1995094967 cross_entropy = 9.854436668756348 perplexity = 925.7229436494428
 
 
 Ejercicio 6 : Suavizado por Interpolación
 
-n-gram: n = 1 log_probability = -883040.9202161023 cross_entropy = 9.912118717838768 perplexity = 963.4852150045497
+n-gram: 
+n = 1 log_probability = -883040.9202161023 cross_entropy = 9.912118717838768 perplexity = 963.4852150045497
 
 n = 2
 log_probability = -774388.9985659586
