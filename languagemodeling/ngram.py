@@ -282,8 +282,8 @@ class InterpolatedNGram(NGram):
         for gamma in range(0, 5000, 500):
             self.gamma = gamma
             new_perp = self.perplexity(held_out)
-            print('gamma = ' + str(gamma))
-            print('perplexity = ' + str(new_perp))
+            # print('gamma = ' + str(gamma))
+            # print('perplexity = ' + str(new_perp))
             if new_perp < old_perp:
                 gamma_ok = self.gamma
         self.gamma = gamma_ok
