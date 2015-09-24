@@ -12,7 +12,7 @@ n = 3
 * Y me parece una Librodot En busca del tiempo perdido II .
 * Porque en ella ».
 
-n = 4
+n = 4
 * En busca del tiempo perdido III .
 * Dégrange , que acaba de juzgar retrospectivamente un incidente liquidado .
 * De lejos veía el jardincillo de los Swann antes de introducirme en el salón de baile del pequeño casino y como si se tratase de algo importante y raro que impusiera deferencia y reclamara atención .
@@ -22,13 +22,19 @@ n = 4
 Ejercicio 5 : Evaluación de Modelos de Lenguaje
 
 n-gram: 
-n = 1 log_probability = -877902.1995094967 cross_entropy = 9.854436668756348 perplexity = 925.7229436494428
+n = 1 
+log_probability = -877902.1995094967 
+cross_entropy = 9.854436668756348 
+perplexity = 925.7229436494428
 
 
 Ejercicio 6 : Suavizado por Interpolación
 
 n-gram: 
-n = 1 log_probability = -883040.9202161023 cross_entropy = 9.912118717838768 perplexity = 963.4852150045497
+n = 1 
+log_probability = -883040.9202161023 
+cross_entropy = 9.912118717838768 
+perplexity = 963.4852150045497
 
 n = 2
 log_probability = -774388.9985659586
