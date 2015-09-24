@@ -30,4 +30,6 @@ if __name__ == '__main__':
     model = pickle.load(openfile)
     openfile.close()
 
-    print(model.perplexity(eval_sents))
+    print('log_probability = ' + str(model.log_probability(eval_sents)))
+    print('cross_entropy = ' + str(model.cross_entropy(eval_sents)))
+    print('perplexity = ' + str(model.perplexity(eval_sents)))
