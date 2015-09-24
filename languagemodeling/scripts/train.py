@@ -23,7 +23,7 @@ corpus = PlaintextCorpusReader(u'.', 'En_busca_del_tiempo_perdido.txt')
 from docopt import docopt
 import pickle
 
-from languagemodeling.ngram import NGram, AddOneNGram
+from languagemodeling.ngram import NGram, AddOneNGram, InterpolatedNGram, Backoff
 
 if __name__ == '__main__':
     opts = docopt(__doc__)
@@ -32,6 +32,10 @@ if __name__ == '__main__':
     m = opts['-m']
     if m == 'addone':
       m = AddOneNGram
+    elif m == 'interpolated':
+      m = InterpolatedNGram
+    elif m == 'backoff':
+      m = InterpolatedNGram
     else:
       m = NGram
     sents = corpus.sents('En_busca_del_tiempo_perdido.txt')
