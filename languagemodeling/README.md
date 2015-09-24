@@ -23,26 +23,27 @@ Ejercicio 5 : Evaluación de Modelos de Lenguaje
 
 n-gram: 
 n = 1:
-log_probability = -877902.1995094967 
-cross_entropy = 9.854436668756348 
+log_probability = -877902.1995094967,
+cross_entropy = 9.854436668756348,
 perplexity = 925.7229436494428
 
 n=2,3,4:
-log_probability = -inf
-cross_entropy = inf
+log_probability = -inf,
+cross_entropy = inf,
 perplexity = inf
+# no encuentro el problema y hoy a la mañana funcionaba
 
 
 Ejercicio 6 : Suavizado por Interpolación
 
 n-gram: 
 n = 1:
-log_probability = -883040.9202161023 
-cross_entropy = 9.912118717838768 
+log_probability = -883040.9202161023,
+cross_entropy = 9.912118717838768,
 perplexity = 963.4852150045497
 
 n = 2:
-log_probability = -774388.9985659586
-cross_entropy = 8.692502818210947
+log_probability = -774388.9985659586,
+cross_entropy = 8.692502818210947,
 perplexity = 413.71768480564936
 
