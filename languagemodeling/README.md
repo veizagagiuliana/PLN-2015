@@ -27,6 +27,11 @@ log_probability = -877902.1995094967
 cross_entropy = 9.854436668756348 
 perplexity = 925.7229436494428
 
+n=2,3,4
+log_probability = -inf
+cross_entropy = inf
+perplexity = inf
+
 
 Ejercicio 6 : Suavizado por Interpolación
 
