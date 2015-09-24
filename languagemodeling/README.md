@@ -31,7 +31,7 @@ n=2,3,4:
 log_probability = -inf,
 cross_entropy = inf,
 perplexity = inf
-# no encuentro el problema y hoy a la mañana funcionaba
+* no encuentro el problema y hoy a la mañana funcionaba
 
 
 Ejercicio 6 : Suavizado por Interpolación
