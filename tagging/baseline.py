@@ -30,10 +30,9 @@ class BaselineTagger:
         w -- the word.
         """
         if self.unknown(w):
-            return self.most_common
+            return self.more_common
         else:
             return self.tagged_tokens[w]
-
 
     def unknown(self, w):
         """Check if a word is unknown for the model.
@@ -41,4 +40,3 @@ class BaselineTagger:
         w -- the word.
         """
         return (w not in self.tagged_tokens)
-

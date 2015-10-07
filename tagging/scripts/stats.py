@@ -18,8 +18,8 @@ if __name__ == '__main__':
 
     # load the data
     corpus = SimpleAncoraCorpusReader('ancora/ancora-2.0/')
-    sents = corpus.tagged_sents()
-    words, tags = zip(*corpus.tagged_words())
+    sents = list(corpus.tagged_sents())
+    words, tags = zip(*list(corpus.tagged_words()))
 
     # compute the statistics
     print('sents: {}'.format(len(sents)))
@@ -51,3 +51,5 @@ if __name__ == '__main__':
                repeat_words)
 
         
+    # compute the statistics
+    print('sents: {}'.format(len(sents)))
