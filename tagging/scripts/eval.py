@@ -13,6 +13,7 @@ import pickle
 import sys
 
 from corpus.ancora import SimpleAncoraCorpusReader
+# from tagging.baseline import BaselineTagger
 
 
 def progress(msg, width=None):
@@ -38,7 +39,8 @@ if __name__ == '__main__':
     sents = list(corpus.tagged_sents())
 
     # tag
-    hits, total = 0, 0
+    hits, known, unknown = 0, 0, 0
+    total, total_known, total_unknown = 0, 0 ,0 
     n = len(sents)
     for i, sent in enumerate(sents):
         word_sent, gold_tag_sent = zip(*sent)
@@ -46,15 +48,35 @@ if __name__ == '__main__':
         model_tag_sent = model.tag(word_sent)
         assert len(model_tag_sent) == len(gold_tag_sent), i
 
-        # global score
-        hits_sent = [m == g for m, g in zip(model_tag_sent, gold_tag_sent)]
+        hits_sent = []
+        unknown_word = []
+        known_word = []
+
+        for j in range(len(sent)):
+            equal_model_tag = (model_tag_sent[j] == gold_tag_sent[j])
+            hits_sent.append(equal_model_tag)
+
+            if model.unknown(word_sent[j]):
+                unknown_word.append(equal_model_tag)
+            else:
+                known_word.append(equal_model_tag)
+
         hits += sum(hits_sent)
+        known += sum(known_word)
+        unknown += sum(unknown_word)
         total += len(sent)
+        total_known += len(known_word)
+        total_unknown += len(unknown_word)
         acc = float(hits) / total
 
         progress('{:3.1f}% ({:2.2f}%)'.format(float(i) * 100 / n, acc * 100))
 
     acc = float(hits) / total
+    acc_known = float(known) / total_known
+    acc_unknown = float(unknown) / total_unknown
 
     print('')
     print('Accuracy: {:2.2f}%'.format(acc * 100))
+    print('Accuracy - palabras conocidas: {:2.2f}%'.format(acc_known * 100))
+    print('Accuracy - palabras desconocidas:  {:2.2f}%'.format(acc_unknown * 100))
+
