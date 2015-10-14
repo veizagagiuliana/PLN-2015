@@ -123,13 +123,17 @@ class HMM:
  
         sent -- the sentence.
         """
-        tagging = []
-        for word in sent:
-            tags = []
-            for tag in self.tagset():
-                tags.append((tag, self.out_prob(word, tag)))
-            tagging.append(max(tags, key=itemgetter(1))[0])
-        return tagging
+        # tagging = []
+        # for word in sent:
+        #     tags = []
+        #     for tag in self.tagset():
+        #         tags.append((tag, self.out_prob(word, tag)))
+        #     tagging.append(max(tags, key=itemgetter(1))[0])
+        # return tagging
+
+        viterbitagger = ViterbiTagger(self)
+        return viterbitagger.tag(sent)
+
          
 
 class ViterbiTagger():
@@ -153,32 +157,66 @@ class ViterbiTagger():
         log_prob = 0.0
         tagging = []
         self._pi[len_tag][prev_tag] = (log2(1.0), [])
-        # for word in sent:
-        #     tag = self.hmm.tag([word])
-        #     tagging += tag
-        #     prev_tag = (prev_tag[1], tag[0])
-        #     len_tag += 1
-        #     log_prob += self.hmm.log_prob([word], tag[0])
-        #     self._pi[len_tag][prev_tag] = (self.hmm.log_prob([word], tag[0]), tagging)
-        # return tagging
 
         for word in sent:
-            tag = self.hmm.tag([word])
-            if len(tagging) != 0:
-                tagging.append(tagging[len_tag-1] + tag)
-            else:
-                tagging.append(tag)
-            print(str(tagging) + ' tagging')
+            tags = []
+            for tag in self.hmm.tagset():
+                tags.append((tag, self.hmm.out_prob(word, tag)))
+            tag = [max(tags, key=itemgetter(1))[0]]
+            tagging = tagging + [tag[0]]
             len_tag += 1
             prev_tag = prev_tag[1:] + tuple(tag[0])
             log_prob += self.hmm.log_prob([word], tag[0])
-            self._pi[len_tag][prev_tag] = (log_prob, tagging[len_tag-1])
-            print(str(self._pi) + '  pi')
-        return tagging[len_tag-1]
+            self._pi[len_tag][prev_tag] = (log_prob, tagging)
+        return tagging
 
 
+class MLHMM(HMM):
+ 
+    def __init__(self, n, tagged_sents, addone=True):
+        """
+        n -- order of the model.
+        tagged_sents -- training sentences, each one being a list of pairs.
+        addone -- whether to use addone smoothing (default: True).
+        """
+        self.n = n
+        self.addone = addone
+        self.tagged_sents = tagged_sents
+        self.count = count = defaultdict(int)
+        tag = []
 
+        for sent in tagged_sents:
+            sent = sent + [('</s>', '</s>')]
+            for i in range(0, n+1):
+                for k in range(len(sent)):
+                    for j in range(i):
+                        tag.append(sent[k + j - 1][1])
+                    if (k + i) == len(sent):
+                        k = len(sent)
+                    print (tag)
+                    count[tuple(tag)] += 1
+                    tag = []
+
+    def tcount(self, tokens):
+        """Count for an k-gram for k <= n.
+ 
+        tokens -- the k-gram tuple.
+        """
+        return self.count[tokens]
+
+ 
+    def unknown(self, w):
+        """Check if a word is unknown for the model.
+ 
+        w -- the word.
+        """
+ 
+    """
+       Todos los métodos de HMM.
+    """
             
+
+
 
 
 
