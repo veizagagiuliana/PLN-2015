@@ -23,3 +23,52 @@ ETIQUETAS   SIGNIFICADO           CANTIDAD      PORCENTAJE       PALABRAS MAS FR
     rg      Adverbio general       15333    2.964044075004833%  ['más', 'hoy', 'también', 'ayer', 'ya']    
     cc      Conjunción coordinada  15023    2.904117533346221%  ['y', 'pero', 'o', 'Pero', 'e']
 
+
+Ejercicio 3: Entrenamiento y Evaluación de Taggers
+
+Ejercicio 5: HMM POS Tagger
+
+n = 1
+
+100.0% (89.01%)
+Accuracy: 89.01%
+Accuracy - palabras conocidas: 95.32%
+Accuracy - palabras desconocidas:  31.80%
+
+real    0m21.850s
+user    0m21.099s
+sys 0m0.283s
+
+
+n = 2
+
+100.0% (92.72%)
+Accuracy: 92.72%
+Accuracy - palabras conocidas: 97.61%
+Accuracy - palabras desconocidas:  48.42%
+
+real    0m27.572s
+user    0m27.147s
+sys 0m0.295s
+
+n = 3
+
+100.0% (93.17%)
+Accuracy: 93.17%
+Accuracy - palabras conocidas: 97.67%
+Accuracy - palabras desconocidas:  52.31%
+
+real    1m28.704s
+user    1m27.217s
+sys 0m1.238s
+
+n = 4
+
+100.0% (93.14%)
+Accuracy: 93.14%
+Accuracy - palabras conocidas: 97.44%
+Accuracy - palabras desconocidas:  54.16%
+
+real    10m55.385s
+user    10m51.024s
+sys 0m1.980s
