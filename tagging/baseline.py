@@ -1,4 +1,4 @@
-
+from operator import itemgetter
 from collections import defaultdict
 
 class BaselineTagger:
@@ -7,13 +7,22 @@ class BaselineTagger:
         """
         tagged_sents -- training sentences, each one being a list of pairs.
         """
-        self.tagged_tokens = tagged_tokens = {}
+        tagged_tokens = defaultdict(dict)
+        self.word_tag = word_tag = defaultdict(int)
 
         count = defaultdict(int)
         for sent in tagged_sents:
             for token, tagged in sent:
-                tagged_tokens[token] = tagged
                 count[tagged] += 1
+                if tagged not in tagged_tokens[token]:
+                    tagged_tokens[token][tagged] = 1
+                else:
+                    tagged_tokens[token][tagged] += 1
+
+
+        for word, tag in tagged_tokens.items():
+            word_tag[word] = max(tag.items(), key=itemgetter(1))[0]
+
         more_common = sorted(count.items(), key=lambda tup: tup[1], reverse=True)
         self.more_common = more_common[0][0]
 
@@ -32,11 +41,11 @@ class BaselineTagger:
         if self.unknown(w):
             return self.more_common
         else:
-            return self.tagged_tokens[w]
+            return self.word_tag[w]
 
     def unknown(self, w):
         """Check if a word is unknown for the model.
 
         w -- the word.
         """
-        return (w not in self.tagged_tokens)
+        return (w not in self.word_tag)

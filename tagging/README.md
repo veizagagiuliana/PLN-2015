@@ -26,6 +26,16 @@ ETIQUETAS   SIGNIFICADO           CANTIDAD      PORCENTAJE       PALABRAS MAS FR
 
 Ejercicio 3: Entrenamiento y Evaluación de Taggers
 
+100.0% (88.99%)
+Accuracy: 88.99%
+Accuracy - palabras conocidas: 95.30%
+Accuracy - palabras desconocidas:  31.80%
+
+real    0m3.141s
+user    0m3.038s
+sys 0m0.084s
+
+
 Ejercicio 5: HMM POS Tagger
 
 n = 1
