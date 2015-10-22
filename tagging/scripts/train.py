@@ -1,7 +1,7 @@
 """Train a sequence tagger.
 
 Usage:
-  train.py -n <n> [-m <model>] -o <file>
+  train.py [-n <n>] [-m <model>] -o <file>
   train.py -h | --help
 
 Options:
@@ -32,11 +32,10 @@ if __name__ == '__main__':
     corpus = SimpleAncoraCorpusReader('ancora/ancora-2.0/', files)
     sents = list(corpus.tagged_sents())
 
-    n = int(opts['-n'])
     # train the model
 
     if models[opts['-m']] == MLHMM:
-      model = models[opts['-m']](n, sents) 
+      model = models[opts['-m']](int(opts['-n']), sents) 
     else: 
       model = models[opts['-m']](sents)
 
