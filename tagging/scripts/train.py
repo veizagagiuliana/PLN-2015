@@ -36,16 +36,25 @@ if __name__ == '__main__':
     sents = list(corpus.tagged_sents())
 
     # train the model
-
+    exit = False
     if models[opts['-m']] == MLHMM:
       model = models[opts['-m']](int(opts['-n']), sents) 
     elif models[opts['-m']] == MEMM:
-      model = models[opts['-m']](int(opts['-n']), sents, opts['-c']) 
+      if opts['-c'] == 'LR' or opts['-c'] =='MNB' or opts['-c'] =='LSVC':
+        model = models[opts['-m']](int(opts['-n']), sents, opts['-c']) 
+      else:
+        print('Parametro -c incorrecto.')
+        print('Ingrese alguna de las siguientes clasificaciones:')
+        print(' LR: LogisticRegression\n',
+              'MNB: MultinomialNB\n',
+              'LSVC: LinearSVC\n')
+        exit = True
     else: 
       model = models[opts['-m']](sents)
 
     # save it
-    filename = opts['-o']
-    f = open(filename, 'wb')
-    pickle.dump(model, f)
-    f.close()
+    if not exit:
+      filename = opts['-o']
+      f = open(filename, 'wb')
+      pickle.dump(model, f)
+      f.close()

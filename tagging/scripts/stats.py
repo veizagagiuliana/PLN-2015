@@ -22,10 +22,10 @@ if __name__ == '__main__':
     words, tags = zip(*list(corpus.tagged_words()))
 
     # compute the statistics
-    print('sents: {}'.format(len(sents)))
-    print('occurrence of words: {}'.format(len(words)))
-    print('vocabulary of words: {}'.format(len(set(words))))
-    print('vocabulary of tags: {}'.format(len(set(tags))))
+    print('oraciones: {}'.format(len(sents)))
+    print('ocurrencia de palabras: {}'.format(len(words)))
+    print('vocabulario de palabras: {}'.format(len(set(words))))
+    print('vocabulario de etiquetas: {}'.format(len(set(tags))))
 
     count_tags = defaultdict(int)
     dicttag_withword = defaultdict(int)

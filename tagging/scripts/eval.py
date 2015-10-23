@@ -58,12 +58,12 @@ if __name__ == '__main__':
 
             if model.unknown(word_sent[j]):
                 unknown_word.append(equal_model_tag)
+                unknown += equal_model_tag
             else:
                 known_word.append(equal_model_tag)
+                known += equal_model_tag
 
         hits += sum(hits_sent)
-        known += sum(known_word)
-        unknown += sum(unknown_word)
         total += len(sent)
         total_known += len(known_word)
         total_unknown += len(unknown_word)
@@ -76,7 +76,7 @@ if __name__ == '__main__':
     acc_unknown = float(unknown) / total_unknown
 
     print('')
-    print('Accuracy: {:2.2f}%'.format(acc * 100))
-    print('Accuracy - palabras conocidas: {:2.2f}%'.format(acc_known * 100))
-    print('Accuracy - palabras desconocidas:  {:2.2f}%'.format(acc_unknown * 100))
+    print('Precisión: {:2.2f}%'.format(acc * 100))
+    print('Precisión - palabras conocidas: {:2.2f}%'.format(acc_known * 100))
+    print('Precisión - palabras desconocidas:  {:2.2f}%'.format(acc_unknown * 100))
 
