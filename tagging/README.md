@@ -1,6 +1,6 @@
-Practico 2
+#Practico 2
 
-Ejercicio 1: Corpus Ancora: Estadísticas de etiquetas POS
+##Ejercicio 1: Corpus Ancora: Estadísticas de etiquetas POS
 
 oraciones: 17379
 ocurrencia de palabras: 517300
@@ -24,7 +24,7 @@ ETIQUETAS   SIGNIFICADO           CANTIDAD      PORCENTAJE       PALABRAS MAS FR
     cc      Conjunción coordinada  15023    2.904117533346221%  ['y', 'pero', 'o', 'Pero', 'e']
 
 
-Ejercicio 3: Entrenamiento y Evaluación de Taggers
+##Ejercicio 3: Entrenamiento y Evaluación de Taggers
 
 100.0% (89.03%)
 Precisión: 89.03%
@@ -36,7 +36,7 @@ user    0m4.441s
 sys 0m0.107s
 
 
-Ejercicio 5: HMM POS Tagger
+##Ejercicio 5: HMM POS Tagger
 
 n = 1
 
@@ -84,7 +84,7 @@ user    10m51.024s
 sys 0m1.980s
 
 
-Ejercicio 7
+##Ejercicio 7
 
 - LogisticRegression
 
@@ -134,7 +134,7 @@ user    1m33.383s
 sys 0m0.902s
 
 
-MultinomialNB
+- MultinomialNB
 
 n = 1
 
@@ -181,7 +181,7 @@ user    21m37.278s
 sys 0m0.687s
 
 
-LinearSVC
+- LinearSVC
 
 n = 1
 100.0% (94.43%)
