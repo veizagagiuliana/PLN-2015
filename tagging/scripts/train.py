@@ -1,11 +1,12 @@
 """Train a sequence tagger.
 
 Usage:
-  train.py [-n <n>] [-m <model>] -o <file>
+  train.py [-n <n>] [-c <c>] [-m <model>] -o <file>
   train.py -h | --help
 
 Options:
   -n <n>        Order of the model.
+  -c <c>        Sorter of the model.
   -m <model>    Model to use [default: base]:
                   base: Baseline
   -o <file>     Output model file.
@@ -17,10 +18,12 @@ import pickle
 from corpus.ancora import SimpleAncoraCorpusReader
 from tagging.baseline import BaselineTagger
 from tagging.hmm import MLHMM
+from tagging.memm import MEMM
 
 models = {
     'base': BaselineTagger,
     'mlhmm': MLHMM,
+    'memm' : MEMM,
 }
 
 
@@ -36,6 +39,8 @@ if __name__ == '__main__':
 
     if models[opts['-m']] == MLHMM:
       model = models[opts['-m']](int(opts['-n']), sents) 
+    elif models[opts['-m']] == MEMM:
+      model = models[opts['-m']](int(opts['-n']), sents, opts['-c']) 
     else: 
       model = models[opts['-m']](sents)
 
