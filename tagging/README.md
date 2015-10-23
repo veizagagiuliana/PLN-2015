@@ -2,7 +2,7 @@ Practico 2
 
 Ejercicio 1: Corpus Ancora: Estadísticas de etiquetas POS
 
-sents: 17379
+oraciones: 17379
 ocurrencia de palabras: 517300
 vocabulario de palabras: 46483
 vocabulario de etiquetas: 48
