@@ -10,9 +10,7 @@ Options:
   -h --help     Show this screen.
  """
 
-import nltk
 from nltk.corpus import PlaintextCorpusReader
-from nltk.corpus import RegexpTokenizer
 
 corpus = PlaintextCorpusReader(u'.', 'En_busca_del_tiempo_perdido.txt')
 

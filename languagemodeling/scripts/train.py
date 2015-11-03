@@ -14,16 +14,15 @@ Options:
   -h --help     Show this screen.
 """
 
-import nltk
 from nltk.corpus import PlaintextCorpusReader
-from nltk.corpus import RegexpTokenizer
 
 corpus = PlaintextCorpusReader(u'.', 'En_busca_del_tiempo_perdido.txt')
 
 from docopt import docopt
 import pickle
 
-from languagemodeling.ngram import NGram, AddOneNGram, InterpolatedNGram, BackOffNGram
+from languagemodeling.ngram import NGram, AddOneNGram
+from languagemodeling.ngram import InterpolatedNGram, BackOffNGram
 
 if __name__ == '__main__':
     opts = docopt(__doc__)
@@ -31,13 +30,13 @@ if __name__ == '__main__':
     n = int(opts['-n'])
     m = opts['-m']
     if m == 'addone':
-      m = AddOneNGram
+        m = AddOneNGram
     elif m == 'interpolated':
-      m = InterpolatedNGram
+        m = InterpolatedNGram
     elif m == 'backoff':
-      m = InterpolatedNGram
+        m = BackOffNGram
     else:
-      m = NGram
+        m = NGram
     sents = corpus.sents('En_busca_del_tiempo_perdido.txt')
     len_sents = len(sents)
     train_sents = sents[:int(0.9 * len_sents)]

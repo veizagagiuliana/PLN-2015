@@ -13,8 +13,7 @@ Options:
 
 from docopt import docopt
 import pickle
-import pdb
-from languagemodeling.ngram import NGram, NGramGenerator
+from languagemodeling.ngram import NGramGenerator
 
 if __name__ == '__main__':
 
@@ -30,5 +29,5 @@ if __name__ == '__main__':
     new_sents = NGramGenerator(model)
 
     for k in range(n):
-      generate = new_sents.generate_sent()
-      print(" ".join(generate) + '\n')    
+        generate = new_sents.generate_sent()
+        print(" ".join(generate) + '\n')
