@@ -38,7 +38,7 @@ if __name__ == '__main__':
     model = pickle.load(f)
     f.close()
 
-    if opts['-m'] != None:
+    if opts['-m'] is not None:
         m = int(opts['-m'])
         no_m = False
     else:
@@ -53,16 +53,17 @@ if __name__ == '__main__':
     hits, total_gold, total_model = 0, 0, 0
     uhits, utotal_gold, utotal_model = 0, 0, 0
 
-    if opts['-n'] != None:
+    if opts['-n'] is not None:
         n = int(opts['-n'])
     else:
         n = len(parsed_sents)
 
-    format_str = '{:3.1f}% ({}/{}) Labeled: (P={:2.2f}%, R={:2.2f}%, F1={:2.2f}%) UnLabeled: (P={:2.2f}%, R={:2.2f}%, F1={:2.2f}%)'
+    format_str = '{:3.1f}% ({}/{}) Labeled: (P={:2.2f}%, R={:2.2f}%, \
+                   F1={:2.2f}%) UnLabeled: (P={:2.2f}%, R={:2.2f}%, \
+                    F1={:2.2f}%)'
     progress(format_str.format(0.0, 0, n, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0))
     prec, rec, f1 = 0, 0, 0
     uprec, urec, uf1 = 0, 0, 0
-
 
     for i, gold_parsed_sent in enumerate(parsed_sents[:n]):
         tagged_sent = gold_parsed_sent.pos()
@@ -84,8 +85,8 @@ if __name__ == '__main__':
 
             # compute unlabeled scores
 
-            ugold_spans = {(y,z) for x, y, z in gold_spans}
-            umodel_spans = {(y,z) for x, y, z in model_spans}
+            ugold_spans = {(y, z) for x, y, z in gold_spans}
+            umodel_spans = {(y, z) for x, y, z in model_spans}
             uhits += len(ugold_spans & umodel_spans)
             utotal_gold += len(ugold_spans)
             utotal_model += len(umodel_spans)
@@ -96,7 +97,7 @@ if __name__ == '__main__':
             uf1 = 2 * uprec * urec / (uprec + urec)
 
         progress(format_str.format(float(i+1) * 100 / n, i+1, n, prec, rec, f1,
-                                    uprec, urec, uf1))
+                 uprec, urec, uf1))
 
     print('')
     print('Parsed {} sentences'.format(n))
