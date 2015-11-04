@@ -23,7 +23,7 @@ from tagging.memm import MEMM
 models = {
     'base': BaselineTagger,
     'mlhmm': MLHMM,
-    'memm' : MEMM,
+    'memm': MEMM,
 }
 
 
@@ -38,23 +38,23 @@ if __name__ == '__main__':
     # train the model
     exit = False
     if models[opts['-m']] == MLHMM:
-      model = models[opts['-m']](int(opts['-n']), sents) 
+        model = models[opts['-m']](int(opts['-n']), sents)
     elif models[opts['-m']] == MEMM:
-      if opts['-c'] == 'LR' or opts['-c'] =='MNB' or opts['-c'] =='LSVC':
-        model = models[opts['-m']](int(opts['-n']), sents, opts['-c']) 
-      else:
-        print('Parametro -c incorrecto.')
-        print('Ingrese alguna de las siguientes clasificaciones:')
-        print(' LR: LogisticRegression\n',
-              'MNB: MultinomialNB\n',
-              'LSVC: LinearSVC\n')
-        exit = True
-    else: 
-      model = models[opts['-m']](sents)
+        if opts['-c'] == 'LR' or opts['-c'] == 'MNB' or opts['-c'] == 'LSVC':
+            model = models[opts['-m']](int(opts['-n']), sents, opts['-c'])
+        else:
+            print('Parametro -c incorrecto.')
+            print('Ingrese alguna de las siguientes clasificaciones:')
+            print(' LR: LogisticRegression\n',
+                  'MNB: MultinomialNB\n',
+                  'LSVC: LinearSVC\n')
+            exit = True
+    else:
+        model = models[opts['-m']](sents)
 
     # save it
     if not exit:
-      filename = opts['-o']
-      f = open(filename, 'wb')
-      pickle.dump(model, f)
-      f.close()
+        filename = opts['-o']
+        f = open(filename, 'wb')
+        pickle.dump(model, f)
+        f.close()

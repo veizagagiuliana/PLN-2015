@@ -1,13 +1,14 @@
-from collections import defaultdict
 from featureforge.vectorizer import Vectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.svm import LinearSVC
 from sklearn.pipeline import Pipeline
-from tagging.features import *
+from tagging.features import (History, PrevWord, NPrevTags, word_isdigit,
+                              word_lower, word_istitle, word_isupper)
+
 
 class MEMM:
- 
+
     def __init__(self, n, tagged_sents, clas='LR'):
         """
         n -- order of the model.
@@ -33,20 +34,16 @@ class MEMM:
         vect = Vectorizer(features)
         clf = {'LR': LogisticRegression(),
                'MNB': MultinomialNB(),
-               'LSVC': LinearSVC()
-               }
+               'LSVC': LinearSVC()}
 
-        self.text_clf = Pipeline([('vect', vect),
-                                  ('clf', clf[clas])])
+        self.text_clf = Pipeline([('vect', vect), ('clf', clf[clas])])
         sents_histories = self.sents_histories(tagged_sents)
         sents_tags = self.sents_tags(tagged_sents)
         self.text_clf = self.text_clf.fit(sents_histories, sents_tags)
 
- 
     def sents_histories(self, tagged_sents):
         """
         Iterator over the histories of a corpus.
- 
         tagged_sents -- the corpus (a list of sentences)
         """
         history = []
@@ -54,12 +51,10 @@ class MEMM:
             if tagged_sent != []:
                 history += self.sent_histories(tagged_sent)
         return history
-        
- 
+
     def sent_histories(self, tagged_sent):
         """
         Iterator over the histories of a tagged sentence.
- 
         tagged_sent -- the tagged sentence (a list of pairs (word, tag)).
         """
         n = self.n
@@ -71,11 +66,10 @@ class MEMM:
             history.append(History(list(sent), tags[i:i+n-1], i))
 
         return history
- 
+
     def sents_tags(self, tagged_sents):
         """
         Iterator over the tags of a corpus.
- 
         tagged_sents -- the corpus (a list of sentences)
         """
         tags = []
@@ -83,11 +77,10 @@ class MEMM:
             if tagged_sent != []:
                 tags += self.sent_tags(tagged_sent)
         return tags
- 
+
     def sent_tags(self, tagged_sent):
         """
         Iterator over the tags of a tagged sentence.
- 
         tagged_sent -- the tagged sentence (a list of pairs (word, tag)).
         """
         sent, tags = zip(*tagged_sent)
@@ -95,7 +88,6 @@ class MEMM:
 
     def tag(self, sent):
         """Tag a sentence.
- 
         sent -- the sentence.
         """
         n = self.n
@@ -107,20 +99,18 @@ class MEMM:
             tags = tags + [tag]
             prev_tags = (prev_tags + (tag,))[1:]
         return tags
- 
+
     def tag_history(self, h):
         """Tag a history.
- 
         h -- the history.
         """
         return self.text_clf.predict([h])
- 
+
     def unknown(self, w):
         """Check if a word is unknown for the model.
- 
+
         w -- the word.
         """
         if w in self.vocabulary:
             return False
         return True
-

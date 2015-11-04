@@ -1,9 +1,9 @@
-from math import log2, log
+from math import log2
 from collections import defaultdict
-from operator import itemgetter
+
 
 class HMM:
- 
+
     def __init__(self, n, tagset, trans, out):
         """
         n -- n-gram size.
@@ -16,28 +16,24 @@ class HMM:
         self.trans = trans
         self.out = out
 
- 
     def tagset(self):
         """Returns the set of tags.
         """
         return self.tags
- 
+
     def trans_prob(self, tag, prev_tags):
         """Probability of a tag.
- 
         tag -- the tag.
         prev_tags -- tuple with the previous n-1 tags (optional only if n = 1).
         """
-        n = self.n
         trans = self.trans
-        if (prev_tags in trans) and (tag in trans[prev_tags]): 
+        if (prev_tags in trans) and (tag in trans[prev_tags]):
             return trans[prev_tags][tag]
 
         return 0.0
 
     def out_prob(self, word, tag):
         """Probability of a word given a tag.
- 
         word -- the word.
         tag -- the tag.
         """
@@ -49,7 +45,6 @@ class HMM:
         """
         Probability of a tagging.
         Warning: subject to underflow problems.
- 
         y -- tagging.
         """
         n = self.n
@@ -69,22 +64,19 @@ class HMM:
         """
         Joint probability of a sentence and its tagging.
         Warning: subject to underflow problems.
- 
         x -- sentence.
         y -- tagging.
         """
-        n = self.n
         tag_prob = 1.0
         for tag, word in zip(y, x):
             tag_prob *= self.out_prob(word, tag)
             if tag_prob == 0.0:
                 break
         return tag_prob * self.tag_prob(y)
- 
+
     def tag_log_prob(self, y):
         """
         Log-probability of a tagging.
- 
         y -- tagging.
         """
         n = self.n
@@ -104,11 +96,9 @@ class HMM:
     def log_prob(self, x, y):
         """
         Joint log-probability of a sentence and its tagging.
- 
         x -- sentence.
         y -- tagging.
         """
-        n = self.n
         log_prob = 0.0
 
         for tag, word in zip(y, x):
@@ -118,72 +108,25 @@ class HMM:
             log_prob += log2(prob)
         return log_prob + log2(self.tag_prob(y))
 
- 
     def tag(self, sent):
         """Returns the most probable tagging for a sentence.
- 
         sent -- the sentence.
         """
         viterbitagger = ViterbiTagger(self)
         return viterbitagger.tag(sent)
 
+
 class ViterbiTagger():
- 
+
     def __init__(self, hmm):
         """
         hmm -- the HMM.
         """
         self.hmm = hmm
         self._pi = {}
- 
-    # def tag(self, sent):
-    #     """Returns the most probable tagging for a sentence.
-
-    #     sent -- the sentence.
-    #     """
-    #     m = len(sent)
-    #     hmm = self._hmm
-    #     n = hmm.n
-    #     tagset = hmm.tagset()
-
-    #     self._pi = pi = {}
-    #     pi[0] = {
-    #         ('<s>',) * (n - 1): (0.0, [])
-    #     }
-
-    #     for i, w in zip(range(1, m + 1), sent):
-    #         pi[i] = {}
-
-    #         # iterate over tags that can follow with out_prob > 0.0
-    #         tag_out_probs = [(t, hmm.out_prob(w, t)) for t in tagset]
-    #         for t, out_p in [(t, p) for t, p in tag_out_probs if p > 0.0]:
-    #             # iterate over non-zeros in the previous column
-    #             for prev, (lp, tag_sent) in pi[i - 1].items():
-    #                 trans_p = hmm.trans_prob(t, prev)
-    #                 if trans_p > 0.0:
-    #                     new_prev = (prev + (t,))[1:]
-    #                     new_lp = lp + log2(out_p) + log2(trans_p)
-    #                     # is it the max?
-    #                     if new_prev not in pi[i] or new_lp > pi[i][new_prev][0]:
-    #                         # XXX: what if equal?
-    #                         pi[i][new_prev] = (new_lp, tag_sent + [t])
-
-    #     # last step: generate STOP
-    #     max_lp = float('-inf')
-    #     result = None
-    #     for prev, (lp, tag_sent) in pi[m].items():
-    #         p = hmm.trans_prob('</s>', prev)
-    #         if p > 0.0:
-    #             new_lp = lp + log2(p)
-    #             if new_lp > max_lp:
-    #                 max_lp = new_lp
-    #                 result = tag_sent
-
-    #     return result
 
     def tag(self, sent):
         """Returns the most probable tagging for a sentence.
- 
         sent -- the sentence.
         """
         n = self.hmm.n
@@ -203,9 +146,11 @@ class ViterbiTagger():
                             tagging = tags + [tag]
                             prob_temp = log_prob + log2(out_p) + log2(trans_p)
                             prev_tag_temp = (prev_tags + (tag,))[1:]
-                            if prob_temp > self._pi[i].get(prev_tag_temp, 
-                                                           (float('-inf'),))[0]:
-                                self._pi[i][prev_tag_temp] = (prob_temp, tagging)
+                            if prob_temp > self._pi[i].get(prev_tag_temp,
+                                                           (float('-inf'),)
+                                                           )[0]:
+                                self._pi[i][prev_tag_temp] = (prob_temp,
+                                                              tagging)
 
         tag_final = []
         prob = float('-inf')
@@ -219,7 +164,7 @@ class ViterbiTagger():
 
 
 class MLHMM(HMM):
- 
+
     def __init__(self, n, tagged_sents, addone=True):
         """
         n -- order of the model.
@@ -233,8 +178,6 @@ class MLHMM(HMM):
         self.out = out = defaultdict(int)
         self.vocabulary = vocabulary = set()
         self.tags = tags = set()
-
-        tag = []
 
         for sent in tagged_sents:
             if sent != []:
@@ -258,14 +201,12 @@ class MLHMM(HMM):
 
     def tcount(self, tokens):
         """Count for an k-gram for k <= n.
- 
         tokens -- the k-gram tuple.
         """
         return self.count[tokens]
 
     def unknown(self, w):
         """Check if a word is unknown for the model.
- 
         w -- the word.
         """
         if w in self.vocabulary:
@@ -274,11 +215,10 @@ class MLHMM(HMM):
 
     def out_prob(self, word, tag):
         """Probability of a word given a tag.
- 
         word -- the word.
         tag -- the tag.
         """
-        if self.count[(tag ,)] == 0:
+        if self.count[(tag, )] == 0:
             result = 0
         elif self.unknown(word):
             result = (1/self.len_voc)
@@ -288,19 +228,16 @@ class MLHMM(HMM):
 
     def trans_prob(self, tag, prev_tags):
         """Probability of a tag.
- 
         tag -- the tag.
         prev_tags -- tuple with the previous n-1 tags (optional only if n = 1).
         """
-        n = self.n
-
         if self.addone:
-            result = ((self.count[prev_tags + (tag,)] + 1 )/ 
-                    (self.count[prev_tags] + self.len_tags))
+            result = ((self.count[prev_tags + (tag, )] + 1) /
+                      (self.count[prev_tags] + self.len_tags))
         elif self.count[prev_tags] == 0:
             result = 0.0
         else:
-            result = (self.count[prev_tags + (tag,)]/ 
-                    self.count[prev_tags])
+            result = (self.count[prev_tags + (tag,)] /
+                      self.count[prev_tags])
 
         return result

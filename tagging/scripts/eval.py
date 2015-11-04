@@ -40,7 +40,7 @@ if __name__ == '__main__':
 
     # tag
     hits, known, unknown = 0, 0, 0
-    total, total_known, total_unknown = 0, 0 ,0 
+    total, total_known, total_unknown = 0, 0, 0
     n = len(sents)
     for i, sent in enumerate(sents):
         word_sent, gold_tag_sent = zip(*sent)
@@ -78,5 +78,5 @@ if __name__ == '__main__':
     print('')
     print('Precisión: {:2.2f}%'.format(acc * 100))
     print('Precisión - palabras conocidas: {:2.2f}%'.format(acc_known * 100))
-    print('Precisión - palabras desconocidas:  {:2.2f}%'.format(acc_unknown * 100))
-
+    print('Precisión - palabras desconocidas:  {:2.2f}%'.format(acc_unknown *
+                                                                100))

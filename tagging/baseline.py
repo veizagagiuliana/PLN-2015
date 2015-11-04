@@ -1,6 +1,7 @@
 from operator import itemgetter
 from collections import defaultdict
 
+
 class BaselineTagger:
 
     def __init__(self, tagged_sents):
@@ -19,12 +20,10 @@ class BaselineTagger:
                 else:
                     tagged_tokens[token][tagged] += 1
 
-
         for word, tag in tagged_tokens.items():
             word_tag[word] = max(tag.items(), key=itemgetter(1))[0]
 
         more_common = max(count.items(), key=itemgetter(1))[0]
-        # more_common = sorted(count.items(), key=lambda tup: tup[1], reverse=True)
         self.more_common = more_common
 
     def tag(self, sent):
