@@ -114,8 +114,8 @@ class TestCKYParser(TestCase):
     def test_ambiguity(self):
         grammar = PCFG.fromstring(
             """
-                VP -> Vt NP           [0.7]
                 VP -> Vt S            [0.3]
+                VP -> Vt NP           [0.7]
                 NP -> PRP NN          [1.0]
                 S -> PRP Vi           [1.0]
                 Vt -> 'saw'           [1.0]
@@ -142,6 +142,7 @@ class TestCKYParser(TestCase):
                      log2(1.0) +  # left part
                      log2(1.0) + log2(1.0) + log2(1.0)},  # right part
         }
+        
         self.assertEqualPi(parser._pi, pi)
 
         # check partial results
