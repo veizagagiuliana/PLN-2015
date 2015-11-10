@@ -14,7 +14,7 @@ class CKYParser:
         self.grammar = grammar
         self.lexical = lexical = defaultdict(list)
         self.nonlexical = nonlexical = defaultdict(list)
-       
+
         for elem in grammar.productions():
             if elem.is_lexical():
                 rhs = elem.rhs()[0]
@@ -29,10 +29,13 @@ class CKYParser:
         # """
         self._pi = pi = defaultdict(dict)
         self._bp = bp = defaultdict(dict)
-        n = len(sent)
-        found = False
+        start = self.grammar.start().symbol()
         lex = self.lexical
         nonlex = self.nonlexical
+        lp = 0.0
+        t = None
+        n = len(sent)
+        found = False
 
         for i, word in enumerate(sent, 1):
             prod = lex[word]
@@ -45,20 +48,17 @@ class CKYParser:
         for k in range(1, n):
             for j in range(1, n-k+1):
                 s = j + k
-                # pi[(j, s)] = {}
-                # bp[(j, s)] = {}
                 for q in range(j, s):
                     rama_i = pi[(j, q)]
                     rama_d = pi[(q+1, s)]
-                    p = []
+                    productions = []
                     for elem1 in rama_i:
                         for elem2 in rama_d:
-                            p += nonlex[(elem1, elem2)]
-                    for elem in p:
+                            productions += nonlex[(elem1, elem2)]
+                    for elem in productions:
                         rhs = elem.rhs()
-                        izq =rhs[0].symbol()
-                        der =rhs[1].symbol()
-                        # if izq in rama_i and der in rama_d:
+                        izq = rhs[0].symbol()
+                        der = rhs[1].symbol()
                         non_ter = repr(elem.lhs())
                         log_prob = elem.logprob() + rama_i[izq] + rama_d[der]
                         child_izq = bp[(j, q)][izq]
@@ -66,12 +66,12 @@ class CKYParser:
                         if non_ter in pi[(j, s)]:
                             if log_prob > pi[(j, s)][non_ter]:
                                 pi[(j, s)][non_ter] = log_prob
-                                bp[(j, s)][non_ter] = Tree(non_ter,
-                                                      [child_izq, child_der])
+                                tree = Tree(non_ter, [child_izq, child_der])
+                                bp[(j, s)][non_ter] = tree
                         else:
                             pi[(j, s)][non_ter] = log_prob
-                            bp[(j, s)][non_ter] = Tree(non_ter,
-                                                       [child_izq, child_der])
+                            tree = Tree(non_ter, [child_izq, child_der])
+                            bp[(j, s)][non_ter] = tree
                         found = True
                 if found:
                     found = False
@@ -79,10 +79,8 @@ class CKYParser:
                     pi[(j, s)] = {}
                     bp[(j, s)] = {}
 
-        start = self.grammar.start().symbol()
-        lp = 0.0
-        t = None
         if start in bp[(1, n)]:
             lp = pi[(1, n)][start]
             t = bp[(1, n)][start]
+
         return(lp, t)

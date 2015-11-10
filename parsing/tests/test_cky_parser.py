@@ -124,8 +124,10 @@ class TestCKYParser(TestCase):
             (3, 3): {'NN': log2(1.0), 'Vi': log2(1.0)},
 
             (1, 2): {},
-            (2, 3): {'NP': log2(1.0 * 1.0 * 1.0),
-                     'S': log2(1.0 * 1.0 * 1.0)},
+            (2, 3): {'NP': log2(1.0 * 1.0 * 1.0),  # NP -> PRP NN,
+                                                   # PRP -> 'her', NN -> 'duck'
+                     'S': log2(1.0 * 1.0 * 1.0)},  # S -> PRP Vi,
+                                                   # PRP -> 'her', Vi -> 'duck'
 
             (1, 3): {'VP':
                      log2(0.7) +  # rule VP -> Vt NP
