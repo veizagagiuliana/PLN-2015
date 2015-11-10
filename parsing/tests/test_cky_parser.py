@@ -100,22 +100,11 @@ class TestCKYParser(TestCase):
         lp2 = log2(1.0 * 0.6 * 1.0 * 0.9 * 1.0 * 1.0 * 0.4 * 0.1 * 1.0)
         self.assertAlmostEqual(lp, lp2)
 
-    def assertEqualPi(self, pi1, pi2):
-        self.assertEqual(set(pi1.keys()), set(pi2.keys()))
-
-        for k in pi1.keys():
-            d1, d2 = pi1[k], pi2[k]
-            self.assertEqual(d1.keys(), d2.keys(), k)
-            for k2 in d1.keys():
-                prob1 = d1[k2]
-                prob2 = d2[k2]
-                self.assertAlmostEqual(prob1, prob2)
-
     def test_ambiguity(self):
         grammar = PCFG.fromstring(
             """
-                VP -> Vt S            [0.3]
                 VP -> Vt NP           [0.7]
+                VP -> Vt S            [0.3]
                 NP -> PRP NN          [1.0]
                 S -> PRP Vi           [1.0]
                 Vt -> 'saw'           [1.0]
@@ -123,7 +112,7 @@ class TestCKYParser(TestCase):
                 NN -> 'duck'          [1.0]
                 Vi -> 'duck'          [1.0]
             """)
-        
+
         parser = CKYParser(grammar)
 
         lp, t = parser.parse('saw her duck'.split())
@@ -132,31 +121,33 @@ class TestCKYParser(TestCase):
         pi = {
             (1, 1): {'Vt': log2(1.0)},
             (2, 2): {'PRP': log2(1.0)},
-            (3, 3): {'NN': log2(1.0)},
-            
+            (3, 3): {'NN': log2(1.0), 'Vi': log2(1.0)},
+
             (1, 2): {},
-            (2, 3): {'NP': log2(1.0 * 1.0 * 1.0)},
+            (2, 3): {'NP': log2(1.0 * 1.0 * 1.0),
+                     'S': log2(1.0 * 1.0 * 1.0)},
 
             (1, 3): {'VP':
                      log2(0.7) +  # rule VP -> Vt NP
                      log2(1.0) +  # left part
                      log2(1.0) + log2(1.0) + log2(1.0)},  # right part
         }
-        
+
         self.assertEqualPi(parser._pi, pi)
 
         # check partial results
         bp = {
             (1, 1): {'Vt': Tree.fromstring("(Vt saw)")},
             (2, 2): {'PRP': Tree.fromstring("(PRP her)")},
-            (3, 3): {'NN': Tree.fromstring("(NN duck)")},
+            (3, 3): {'NN': Tree.fromstring("(NN duck)"),
+                     'Vi': Tree.fromstring("(Vi duck)")},
 
             (1, 2): {},
-            (2, 3): {'NP': Tree.fromstring("(NP (PRP her) (NN duck))")},
+            (2, 3): {'NP': Tree.fromstring("(NP (PRP her) (NN duck))"),
+                     'S': Tree.fromstring("(S (PRP her) (Vi duck))")},
 
             (1, 3): {'VP': Tree.fromstring(
                 "(VP (Vt saw) (NP (PRP her) (NN duck)))")},
-
         }
 
         self.assertEqual(parser._bp, bp)
@@ -173,5 +164,16 @@ class TestCKYParser(TestCase):
         self.assertEqual(t, t2)
 
         # check log probability
-        lp2 = log2(0.7 * 1.0 * 1.0 * 1.0 * 1.0 )
+        lp2 = log2(0.7 * 1.0 * 1.0 * 1.0 * 1.0)
         self.assertAlmostEqual(lp, lp2)
+
+    def assertEqualPi(self, pi1, pi2):
+        self.assertEqual(set(pi1.keys()), set(pi2.keys()))
+
+        for k in pi1.keys():
+            d1, d2 = pi1[k], pi2[k]
+            self.assertEqual(d1.keys(), d2.keys(), k)
+            for k2 in d1.keys():
+                prob1 = d1[k2]
+                prob2 = d2[k2]
+                self.assertAlmostEqual(prob1, prob2)
