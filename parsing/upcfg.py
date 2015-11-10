@@ -9,28 +9,25 @@ class UPCFG:
     """Unlexicalized PCFG.
     """
 
-    def __init__(self, parsed_sents, start='sentence'):
+    def __init__(self, parsed_sents, start='sentence', horzMarkov=None):
         """
         parsed_sents -- list of training trees.
         """
         self.start = start = N(start)
-      
         productions = []
 
         for tree in parsed_sents:
             unlex = unlexicalize(tree.copy(deep=True))
-            unlex.chomsky_normal_form()
+            unlex.chomsky_normal_form(horzMarkov=horzMarkov)
             unlex.collapse_unary(collapsePOS=True, collapseRoot=True)
             productions += unlex.productions()
 
         self._grammar = grammar = induce_pcfg(start, productions)
-        # self.prod = grammar.productions()
         self.CKY = CKYParser(grammar)
 
     def productions(self):
         """Returns the list of UPCFG probabilistic productions.
         """
-        # return self.prod
         return self._grammar.productions()
 
     def parse(self, tagged_sent):
