@@ -16,8 +16,7 @@ class NGram(object):
         self.counts = counts = defaultdict(int)
 
         for sent in sents:
-            sent = sent + ['</s>']
-            sent = ['<s>']*(n-1) + sent
+            sent = ['<s>']*(n-1) + sent + ['</s>']
             for i in range(len(sent) - (n - 1)):
                 ngram = tuple(sent[i: i + n])
                 counts[ngram] += 1
@@ -61,12 +60,11 @@ class NGram(object):
         sent = sent + ['</s>']
         prev_tokens = ['<s>']*(self.n-1)
 
-        for i in range(len(sent)):
-            sent_prob *= float(self.cond_prob(sent[i], prev_tokens))
+        for token in sent:
+            sent_prob *= float(self.cond_prob(token, prev_tokens))
             if sent_prob == 0.0:
                 return sent_prob
-            prev_tokens.append(sent[i])
-            prev_tokens = prev_tokens[1:]
+            prev_tokens = (prev_tokens + [token])[1:]
         return sent_prob
 
     def sent_log_prob(self, sent):
@@ -76,19 +74,18 @@ class NGram(object):
         n = self.n
         sent_prob = 0.0
         sent = sent + ['</s>']
-        prev_tokens = ['<s>']*(n-1)
+        prev_tokens = ['<s>'] * (n - 1)
 
         for token in sent:
             token_prob = float(self.cond_prob(token, prev_tokens))
             if token_prob == 0.0:
                 return float('-inf')
             sent_prob += log2(token_prob)
-            prev_tokens.append(token)
-            prev_tokens = prev_tokens[1:]
+            prev_tokens = (prev_tokens + [token])[1:]
         return sent_prob
 
     def log_probability(self, sents):
-        sum_log = 0.0
+        sum_log = 0
         for sent in sents:
             sum_log += self.sent_log_prob(sent)
         return sum_log
@@ -96,7 +93,7 @@ class NGram(object):
     def cross_entropy(self, sents):
         M = 0
         for sent in sents:
-            M += len(sent) + 1
+            M += len(sent)
         sum_log = self.log_probability(sents)
         return (-sum_log/M)
 
@@ -179,7 +176,18 @@ class AddOneNGram(NGram):
         sents -- list of sentences, each one being a list of tokens.
         """
         NGram.__init__(self, n, sents)
-        self.v = self.V()
+        # super(AddOneNGram, self).__init__(n, sents)
+        voc = []
+        for g, c in self.counts.items():
+            if len(g) == n:
+                for i in g:
+                    voc += [i]
+        voc = list(set(voc))
+        if '<s>' in voc:
+            voc.remove('<s>')
+        v = len(voc)
+
+        self.v = v
 
     def cond_prob(self, token, prev_tokens=None):
         """Conditional probability of a token.
@@ -187,35 +195,21 @@ class AddOneNGram(NGram):
         prev_tokens -- the previous n-1 tokens (optional only if n = 1).
         """
         n = self.n
+        count = self.count
+        v = self.V()
         if not prev_tokens:
             prev_tokens = []
         assert len(prev_tokens) == n - 1
 
         tokens = prev_tokens + [token]
-        if self.count(tuple(tokens[:-1])) == 0:
-            return (float(self.count(tuple(tokens))) + 1.0) / \
-                (float('inf') + self.v)
 
-        result = (float(self.count(tuple(tokens))) + 1.0) / \
-            (float(self.count(tuple(prev_tokens))) + self.v)
-
-        if self.counts[tuple(tokens)] == 0:
-            del self.counts[tuple(tokens)]
-
-        return float(result)
+        return (float(count(tuple(tokens))) + 1.0) / \
+            (float(count(tuple(prev_tokens)) + v))
 
     def V(self):
         """Size of the vocabulary.
         """
-        v = []
-        for w, c in self.counts.items():
-            if len(w) == self.n:
-                for i in w:
-                    v += [i]
-        v = list(set(v))
-        if '<s>' in v:
-            v.remove('<s>')
-        return len(v)
+        return self.v
 
 
 class InterpolatedNGram(NGram):

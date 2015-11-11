@@ -29,7 +29,7 @@ if __name__ == '__main__':
 
     n = int(opts['-n'])
     m = opts['-m']
-    if m == 'addone':
+    if m == 'add-one':
         m = AddOneNGram
     elif m == 'interpolated':
         m = InterpolatedNGram
