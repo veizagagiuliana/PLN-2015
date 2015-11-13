@@ -25,7 +25,7 @@
 
 ##Ejercicio 5 : Evaluación de Modelos de Lenguaje
 
-n-gram: 
+#### n-gram: 
 
 | n | perplexity |
 |---|------------|
@@ -37,14 +37,11 @@ n-gram:
 
 ## Ejercicio 6 : Suavizado por Interpolación
 
-####n-gram: 
-#####n = 1:
-log_probability = -883040.9202161023,
-cross_entropy = 9.912118717838768,
-perplexity = 963.4852150045497
+####n-gram:
 
-#####n = 2:
-log_probability = -774388.9985659586,
-cross_entropy = 8.692502818210947,
-perplexity = 413.71768480564936
-
+| n | perplexity |
+|---|------------|
+| 1 |  1208.2884 |
+| 2 |   469.7101 |
+| 3 |  2326.0734 |
+| 4 |  3464.9564 |
