@@ -25,7 +25,6 @@
 
 ##Ejercicio 5 : Evaluación de Modelos de Lenguaje
 
-#### n-gram: 
 
 | n | perplexity |
 |---|------------|
@@ -37,7 +36,6 @@
 
 ## Ejercicio 6 : Suavizado por Interpolación
 
-####n-gram:
 
 | n | perplexity |
 |---|------------|
@@ -45,3 +43,14 @@
 | 2 |   469.7101 |
 | 3 |  2326.0734 |
 | 4 |  3464.9564 |
+
+
+## Ejercicio 7 : Suavizado por Back-Off con Discounting
+
+
+| n | perplexity |
+|---|------------|
+| 1 |  1204.8076 |
+| 2 |   317.8659 |
+| 3 |   257.4058 |
+| 4 |   249.3864 |

@@ -241,7 +241,7 @@ class InterpolatedNGram(NGram):
         n = self.n
         counts = defaultdict(int)
         for sent in sents:
-            sent = ['<s>']*(n-1) + sent + ['</s>']
+            sent = ['<s>'] * (n-1) + sent + ['</s>']
             len_sent = len(sent)
             for i in range(1, n+1):
                 for j in range(len_sent - (n - 1)):
@@ -249,15 +249,15 @@ class InterpolatedNGram(NGram):
                     counts[ngram] += 1
                     if i == 1:
                         counts[tuple()] += 1
-            for i in range(1, n):
-                counts[tuple(['<s>']*i)] += 1
+                if i != 1:
+                    counts[tuple(['<s>']*i)] += 1
         return counts
 
     def build_gamma(self, held_out):
         self.gamma = 1
         gamma_ok = self.gamma
         old_perp = self.perplexity(held_out)
-        for gamma in range(20, 2000, 20):
+        for gamma in range(20, 1000, 20):
             self.gamma = gamma
             new_perp = self.perplexity(held_out)
             if new_perp < old_perp:
@@ -271,11 +271,16 @@ class InterpolatedNGram(NGram):
             prev_tokens = []
 
         tokens = prev_tokens + [token]
-        if addone and not len(prev_tokens):
-            return (float(self.count(tuple(tokens)) + 1) /
+        if not addone or len(prev_tokens) != 0:
+            if float(self.count(tuple(prev_tokens))) != 0.0:
+                result = (float(self.count(tuple(tokens))) /
+                        float(self.count(tuple(prev_tokens))))
+            else:
+                result = 0.0
+        else:
+            result = (float(self.count(tuple(tokens)) + 1) /
                     (float(self.count(tuple(prev_tokens))) + float(self.v)))
-        return (float(self.count(tuple(tokens))) /
-                float(self.count(tuple(prev_tokens))))
+        return result
 
     def lamdas(self, tokens):
         n = self.n
@@ -329,22 +334,55 @@ class BackOffNGram(NGram):
         """
         NGram.__init__(self, n, sents)
         self.addone = addone
-        self.beta = beta
+
+        if beta is None:
+            held_out = sents[int(len(sents)*0.9):]
+            sents = sents[:int(len(sents)*0.9)]
+
         self.counts = counts = self.build_count(sents)
         self.a = defaultdict(set)
-        self.d = d = dict()
+        self.dict_denom = dict()
+        self.dict_alpha = dict()
+        self.v = 0
+
+        if addone:
+            self.V()
 
         for token, count in counts.items():
-            # armo a para usar en self.A()
+            # usado en self.A()
             if len(token) > 1:
                 self.a[tuple(token[:-1])].add(token[-1])
+                if "<s>" in self.a[tuple(token[:-1])]:
+                    self.a[tuple(token[:-1])].remove("<s>")
 
-        for token, count in counts.items():
-            # armo d para usar en self.denom()
-            prob = 0
-            for elem in self.a:
-                prob += self.cond_prob(elem, list(token[1:]))
-            d[token] = prob
+        if beta is None:
+            self.beta = self.beta(held_out)
+        else:
+            self.beta = beta
+            self.build_alphas()
+            self.build_denom()
+
+    def build_alphas(self):
+        beta = self.beta
+        dict_alpha = dict()
+        for tokens in self.a.keys():
+            count = self.count(tokens)
+            list_postokens = list(self.A(tokens))
+            num_postokens = len(list_postokens)
+            if count != 0:
+                dict_alpha[tokens] = (beta * num_postokens)/count
+        self.dict_alpha = dict_alpha
+
+    def build_denom(self):
+        dict_denom = dict()
+        for tokens in self.a.keys():
+            list_postokens = list(self.A(tokens))
+            prev_tokens = list(tokens)
+            p = 0.0
+            for token in list_postokens:
+                p += self.cond_prob(token, prev_tokens[1:])
+            dict_denom[tokens] = 1 - p
+        self.dict_denom = dict_denom
 
     def build_count(self, sents):
         n = self.n
@@ -358,23 +396,26 @@ class BackOffNGram(NGram):
                     counts[ngram] += 1
                     if i == 1:
                         counts[tuple()] += 1
-            for i in range(1, n):
-                counts[tuple(['<s>']*i)] += 1
+                if i != 1:
+                    counts[tuple(['<s>']*(i-1))] += 1
         return counts
 
     def beta(self, sents):
-        self.beta = 0.0
+        self.beta = 0.1
         beta_ok = self.beta
         old_perp = self.perplexity(sents)
         for beta in range(1, 11):
+            self.build_alphas()
+            self.build_denom()
             self.beta = beta * 0.1
             new_perp = self.perplexity(sents)
             if new_perp < old_perp:
+                old_perp = new_perp
                 beta_ok = self.beta
-        self.beta = beta_ok
+        return beta_ok
 
     def count_prime(self, tokens):
-        return self.count(tuple(tokens)) - self.beta
+        return self.count(tokens) - self.beta
 
     def cond_prob_ML(self, token, prev_tokens=None):
         addone = self.addone
@@ -382,11 +423,16 @@ class BackOffNGram(NGram):
             prev_tokens = []
 
         tokens = prev_tokens + [token]
-        if addone and not len(prev_tokens):
-            return (float(self.count(tuple(tokens)) + 1) /
+        if not addone or len(prev_tokens) != 0:
+            if float(self.count(tuple(prev_tokens))) != 0.0:
+                result = (float(self.count(tuple(tokens))) /
+                        float(self.count(tuple(prev_tokens))))
+            else:
+                result = 0.0
+        else:
+            result = (float(self.count(tuple(tokens)) + 1) /
                     (float(self.count(tuple(prev_tokens))) + float(self.v)))
-        return (float(self.count(tuple(tokens))) /
-                float(self.count(tuple(prev_tokens))))
+        return result
 
     def cond_prob(self, token, prev_tokens=None):
         """Conditional probability of a token.
@@ -400,13 +446,17 @@ class BackOffNGram(NGram):
         if len(prev_tokens) == 0:
             prob = self.cond_prob_ML(token, prev_tokens)
         else:
-            if token in self.a:
-                prob = (self.count_prime(tuple(tokens)) /
-                        self.count(tuple(prev_tokens)))
+            A = self.A(tuple(prev_tokens))
+            if token in A:
+                prob = self.count_prime(tuple(tokens)) / \
+                       self.count(tuple(prev_tokens))
             else:
-                alpha = self.alpha(tuple(tokens))
-                cond_prob = self.cond_prob(token, prev_tokens[1:])
-                denom = self.denom(tuple(tokens))
+                if len(prev_tokens) < 1:
+                    cond_prob = self.cond_prob_ML(token, prev_tokens[1:])                    
+                else:
+                    cond_prob = self.cond_prob(token, prev_tokens[1:])
+                alpha = self.alpha(tuple(prev_tokens))
+                denom = self.denom(tuple(prev_tokens))
                 prob = alpha * (cond_prob / denom)
         return prob
 
@@ -414,21 +464,34 @@ class BackOffNGram(NGram):
         """Set of words with counts > 0 for a k-gram with 0 < k < n.
         tokens -- the k-gram tuple.
         """
-        return self.a[tuple(tokens)]
+        return self.a[tokens]
 
     def alpha(self, tokens):
         """Missing probability mass for a k-gram with 0 < k < n.
         tokens -- the k-gram tuple.
         """
-        beta = self.beta
-        count = self.count(tokens)
-        num_postokens = len(self.a[tuple(tokens)])
-        return (num_postokens * beta) / count
+
+        if tokens in self.dict_alpha:
+            return self.dict_alpha[tokens]
+        return 1
 
     def denom(self, tokens):
         """Normalization factor for a k-gram with 0 < k < n.
         tokens -- the k-gram tuple.
         """
-        if tokens in self.denom:
-            return self.denom(tokens)
+        if tokens in self.dict_denom:
+            return self.dict_denom[tokens]
         return 1
+
+    def V(self):
+        """Size of the vocabulary.
+        """
+        v = []
+        for w, c in self.counts.items():
+            if len(w) == self.n:
+                for i in w:
+                    v += [i]
+        v = list(set(v))
+        if '<s>' in v:
+            v.remove('<s>')
+        self.v = len(v)
