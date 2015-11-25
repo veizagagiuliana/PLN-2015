@@ -225,17 +225,18 @@ class InterpolatedNGram(NGram):
         NGram.__init__(self, n, sents)
         len_sents = len(sents)
 
+        if gamma is None:
+            held_out = sents[int(0.9 * len_sents):]
+            sents = sents[:int(0.9 * len_sents)]
+
+        self.counts = self.build_count(sents)
         self.addone = addone
         self.v = self.V()
 
-        if gamma is not None:
-            self.gamma = gamma
-        else:
-            held_out = sents[int(0.9 * len_sents):]
-            sents = sents[:int(0.9 * len_sents)]
+        if gamma is None:
             self.build_gamma(held_out)
-
-        self.counts = self.build_count(sents)
+        else:
+            self.gamma = gamma
 
     def build_count(self, sents):
         n = self.n
@@ -274,20 +275,21 @@ class InterpolatedNGram(NGram):
         if not addone or len(prev_tokens) != 0:
             if float(self.count(tuple(prev_tokens))) != 0.0:
                 result = (float(self.count(tuple(tokens))) /
-                        float(self.count(tuple(prev_tokens))))
+                          float(self.count(tuple(prev_tokens))))
             else:
                 result = 0.0
         else:
             result = (float(self.count(tuple(tokens)) + 1) /
-                    (float(self.count(tuple(prev_tokens))) + float(self.v)))
+                      (float(self.count(tuple(prev_tokens))) + float(self.v)))
         return result
 
     def lamdas(self, tokens):
         n = self.n
+        gamma = self.gamma
         lamdas = []
         for i in range(n - 1):
             num = (1 - sum(lamdas)) * self.count(tuple(tokens[i:]))
-            den = self.count(tuple(tokens[i:])) + self.gamma
+            den = self.count(tuple(tokens[i:])) + gamma
             lamda = num / den
             lamdas.append(lamda)
         lamda = float(1 - sum(lamdas))
@@ -426,12 +428,12 @@ class BackOffNGram(NGram):
         if not addone or len(prev_tokens) != 0:
             if float(self.count(tuple(prev_tokens))) != 0.0:
                 result = (float(self.count(tuple(tokens))) /
-                        float(self.count(tuple(prev_tokens))))
+                          float(self.count(tuple(prev_tokens))))
             else:
                 result = 0.0
         else:
             result = (float(self.count(tuple(tokens)) + 1) /
-                    (float(self.count(tuple(prev_tokens))) + float(self.v)))
+                      (float(self.count(tuple(prev_tokens))) + float(self.v)))
         return result
 
     def cond_prob(self, token, prev_tokens=None):
@@ -448,11 +450,11 @@ class BackOffNGram(NGram):
         else:
             A = self.A(tuple(prev_tokens))
             if token in A:
-                prob = self.count_prime(tuple(tokens)) / \
-                       self.count(tuple(prev_tokens))
+                prob = (self.count_prime(tuple(tokens)) /
+                        self.count(tuple(prev_tokens)))
             else:
                 if len(prev_tokens) < 1:
-                    cond_prob = self.cond_prob_ML(token, prev_tokens[1:])                    
+                    cond_prob = self.cond_prob_ML(token, prev_tokens[1:])
                 else:
                     cond_prob = self.cond_prob(token, prev_tokens[1:])
                 alpha = self.alpha(tuple(prev_tokens))
